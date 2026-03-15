@@ -1,0 +1,58 @@
+{
+  "categories": [
+    "Sensor Connectivity",
+    "Device Configuration",
+    "Account Access",
+    "Platform Configuration",
+    "General Support"
+  ],
+  "subcategories": [
+    "Offline Sensor",
+    "Gateway Connectivity",
+    "Duo Setup",
+    "Installation Help",
+    "Password Reset",
+    "Login Failure",
+    "Activity Setting",
+    "Stop Cause Setup",
+    "ID Mapping",
+    "Site Configuration"
+  ],
+  "root_causes": [
+    "Device connectivity issue affecting the sensor or gateway.",
+    "Customer required assistance configuring hardware setup.",
+    "Customer needed help accessing the system account.",
+    "Customer required assistance configuring system settings.",
+    "Customer requested assistance with the platform."
+  ],
+  "severities": [
+    "low",
+    "medium",
+    "high"
+  ],
+  "tiers": [
+    "Tier 1",
+    "Tier 2",
+    "Tier 3"
+  ],
+  "product_areas": [
+    "IoT & Hardware",
+    "Production System",
+    "Cloud Platform",
+    "General Platform"
+  ],
+  "resolution_types": [
+    "Support Fix",
+    "Customer Fix",
+    "Self Resolved",
+    "Unknown"
+  ],
+  "churn_risks": [
+    "No",
+    "Yes"
+  ],
+  "upsell_opportunities": [
+    "No",
+    "Yes"
+  ]
+}
