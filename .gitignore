@@ -5,11 +5,14 @@
 # Dependencies
 node_modules/
 package-lock.json
+venv/
+__pycache__/
 
 # IDE and OS files
 .DS_Store
 .vscode/
 .idea/
+.claude/
 
 # Database files
 *.sqlite

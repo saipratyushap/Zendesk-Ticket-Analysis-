@@ -1,11 +1,11 @@
 
 import sys
-from deep_translator import GoogleTranslator
+from deep_translator import GoogleTranslator  # pyre-ignore
 
-def translate(text, from_code='da', to_code='en'):
+def translate(text, from_code='auto', to_code='en'):
     try:
-        # Using deep-translator as it is compatible with Python 3.14
-        # and fulfills the requirement of translating Danish to English.
+        # Using deep-translator with auto-detection to support all languages
+        # (Danish, Dutch, German, French, etc.) -> English
         return GoogleTranslator(source=from_code, target=to_code).translate(text)
     except Exception as e:
         return f"Translation Error: {str(e)}"

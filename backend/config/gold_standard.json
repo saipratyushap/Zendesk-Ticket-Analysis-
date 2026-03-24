@@ -1,41 +1,47 @@
 [
   {
-    "raw_text": "MB77 both sensors are online now. You may close the ticket. Thanks.",
+    "raw_text": "Customer: I have 2 Duo devices experiencing issues and would like to swap them for new ones.\n\nSupport Agent: One device had a firmware update applied last week that resolved its connectivity issue. The second device is connected via cellular but not connecting to WiFi. Please check if the device is whitelisted on your network firewall and verify WiFi credentials. We want to exhaust all configuration options before considering hardware replacement.",
     "ideal_output": {
-      "problem_summary": "Sensor connectivity status update",
-      "solution_summary": "Sensors are online and confirmed functional by customer",
-      "issue_category": "Sensor Connectivity",
-      "issue_subcategory": "Offline Sensor",
-      "root_cause": "Device connectivity issue resolved",
-      "severity": "low",
-      "resolution_type": "Support Fix",
-      "reasoning": "The customer confirmed that sensors are online, indicating a resolution to a connectivity issue. The category matches 'Sensor Connectivity' and subcategory 'Offline Sensor' based on the mention of sensors being online."
-    }
-  },
-  {
-    "raw_text": "Inquiry about transferring setup from old FactBird Duo to new one",
-    "ideal_output": {
-      "problem_summary": "Request for hardware setup migration (FactBird Duo)",
-      "solution_summary": "Resolution in progress; support is currently investigating.",
-      "issue_category": "Device Configuration",
-      "issue_subcategory": "Duo Setup",
-      "root_cause": "Customer required assistance configuring hardware setup.",
-      "severity": "low",
-      "resolution_type": "Unknown",
-      "reasoning": "The customer is asking how to transfer a setup, which falls under 'Device Configuration' and the subcategory 'Duo Setup' as it specifically mentions FactBird Duo."
-    }
-  },
-  {
-    "raw_text": "I need help adding activities to specific stop causes on specific lines at one site.",
-    "ideal_output": {
-      "problem_summary": "Assistance needed with activity template configuration",
-      "solution_summary": "Resolution in progress; support is currently investigating.",
-      "issue_category": "Platform Configuration",
-      "issue_subcategory": "Activity Setting",
-      "root_cause": "Customer required assistance configuring system settings.",
+      "problem_summary": "Customer requested hardware replacement for two Duo devices experiencing connectivity issues",
+      "solution_summary": "One device issue resolved via firmware update. Second device has WiFi connectivity issue — support advised checking network firewall whitelist, WiFi credentials, and IoT device restrictions before hardware swap",
+      "issue_category": "Network & Data Transfer (wifi/cellular/certs/transferring data)",
+      "issue_subcategory": "WiFi Configuration",
+      "root_cause": "Infrastructure Issue",
       "severity": "medium",
-      "resolution_type": "Unknown",
-      "reasoning": "The request involves configuring activities and stop causes within the platform, which is a 'Platform Configuration' task under 'Activity Setting'."
+      "churn_risk": "No",
+      "resolution_type": "Training / Guidance Provided",
+      "confidence_score": 9,
+      "reasoning": "The customer initially requested a hardware swap, but support investigation revealed one device was already fixed via firmware update. The remaining issue is WiFi connectivity (not hardware), as the device has cellular but no WiFi. Root cause is therefore WiFi/network config, which falls under Infrastructure Issue in the taxonomy. Severity is medium because one device is resolved and the other has a workaround (cellular)."
+    }
+  },
+  {
+    "raw_text": "Customer: MB77 both sensors are online now. You may close the ticket. Thanks.\n\nSupport Agent: Great, glad to hear it! Closing the ticket.",
+    "ideal_output": {
+      "problem_summary": "Sensor connectivity issue — sensors were offline (now resolved)",
+      "solution_summary": "Sensors came back online; customer confirmed resolution and requested ticket closure",
+      "issue_category": "Sensors & PLC Connectivity (PLCs, Kepware, wiring, signal ingestion)",
+      "issue_subcategory": "Offline Sensor",
+      "root_cause": "Infrastructure Issue",
+      "severity": "low",
+      "churn_risk": "No",
+      "resolution_type": "No Action Needed",
+      "confidence_score": 7,
+      "reasoning": "Customer confirmed sensors are online and closed the ticket, indicating the connectivity issue was resolved. Root cause is assumed to be a temporary outage as no specific cause was mentioned, mapped to Infrastructure Issue."
+    }
+  },
+  {
+    "raw_text": "Customer: I need help adding activities to specific stop causes on specific lines at one site.\n\nSupport Agent: Sure, I can walk you through that. Go to the Activity Templates section, select your line, then assign stop causes to each activity type.",
+    "ideal_output": {
+      "problem_summary": "Customer needs help configuring activity templates and linking them to specific stop causes on a production line",
+      "solution_summary": "Support guided customer through Activity Templates section to assign stop causes to activity types per line",
+      "issue_category": "Stops, Events & Activities (stop causes, activities)",
+      "issue_subcategory": "Activity Setting",
+      "root_cause": "User Error",
+      "severity": "low",
+      "churn_risk": "No",
+      "resolution_type": "Training / Guidance Provided",
+      "confidence_score": 8,
+      "reasoning": "Customer needed guidance on a platform configuration task. Support provided step-by-step instructions. This is a low severity how-to request, mapped to User Error (as in 'User needed assistance')."
     }
   }
 ]

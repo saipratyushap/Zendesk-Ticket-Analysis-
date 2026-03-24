@@ -1,58 +1,100 @@
 {
   "categories": [
-    "Sensor Connectivity",
-    "Device Configuration",
-    "Account Access",
-    "Platform Configuration",
-    "General Support"
+    "Account & Subscription (Billing)",
+    "Access & User Management (login, permissions, orgs)",
+    "Onboarding & Setup (initial rollout, configuration help)",
+    "Devices & Edge Hardware (EDGE/DUO/physical device issues)",
+    "Sensors & PLC Connectivity (PLCs, Kepware, wiring, signal ingestion)",
+    "Network & Data Transfer (wifi/cellular/certs/transferring data)",
+    "Production Line Configuration (manual line, virtual device, line modeling)",
+    "Stops, Events & Activities (stop causes, activities)",
+    "Batches & Recipes (batches, control recipe, golden batch)",
+    "OEE & KPIs (calculation logic, KPI definitions)",
+    "Operator Experience (Views) (operator view, day-to-day UI)",
+    "Analytics, Trends & Insights",
+    "Reports & BI Export (reports, Power BI, exports)",
+    "Integrations & API (GraphQL, API token, system integration, batch XML API)",
+    "Reliability & Performance (errors, outages, system performance, migration)"
   ],
   "subcategories": [
     "Offline Sensor",
     "Gateway Connectivity",
+    "WiFi Configuration",
+    "Cellular Connectivity",
     "Duo Setup",
+    "Hardware Replacement Request",
+    "Firmware Update",
     "Installation Help",
     "Password Reset",
     "Login Failure",
+    "User Permissions",
     "Activity Setting",
     "Stop Cause Setup",
     "ID Mapping",
-    "Site Configuration"
+    "Site Configuration",
+    "Data Export",
+    "Dashboard / Reporting Issue",
+    "API Integration",
+    "Network Firewall / Whitelist"
   ],
   "root_causes": [
-    "Device connectivity issue affecting the sensor or gateway.",
-    "Customer required assistance configuring hardware setup.",
-    "Customer needed help accessing the system account.",
-    "Customer required assistance configuring system settings.",
-    "Customer requested assistance with the platform."
+    "Product Bug",
+    "UX Design Confusion",
+    "Missing Capability",
+    "Performance Limitation",
+    "Data Processing Issue",
+    "Integration Dependency Issue",
+    "Permissions Design Gap",
+    "Configuration Complexity",
+    "Documentation Gap",
+    "Onboarding Gap",
+    "Sales Expectation Mismatch",
+    "User Error",
+    "Infrastructure Issue",
+    "Known Limitation (Intentional)",
+    "Third-party System Issue"
   ],
   "severities": [
     "low",
     "medium",
-    "high"
+    "high",
+    "critical"
   ],
   "tiers": [
-    "Tier 1",
-    "Tier 2",
-    "Tier 3"
-  ],
-  "product_areas": [
-    "IoT & Hardware",
-    "Production System",
-    "Cloud Platform",
-    "General Platform"
+    "Tier 1 (Basic support \u2013 FAQs, password reset, simple issues)",
+    "Tier 2 (Technical support \u2013 config, troubleshooting)",
+    "Tier 3 (Engineering \u2013 bugs, deep issues)"
   ],
   "resolution_types": [
-    "Support Fix",
-    "Customer Fix",
-    "Self Resolved",
-    "Unknown"
+    "Support Fix (handled by support team)",
+    "Customer Fix (user performed action)",
+    "Configuration Change Applied",
+    "Workaround Provided",
+    "Escalated to Engineering",
+    "Product Bug Fix Released",
+    "Feature Request Logged",
+    "Training / Guidance Provided",
+    "No Action Needed"
   ],
   "churn_risks": [
     "No",
     "Yes"
   ],
-  "upsell_opportunities": [
+  "expansion_signals": [
     "No",
     "Yes"
+  ],
+  "preventabilities": [
+    "Better UI/UX Design",
+    "Better Documentation",
+    "Better Onboarding/Training",
+    "Automation / Validation Needed",
+    "Improved System Reliability",
+    "Not Preventable"
+  ],
+  "companies": [
+    "Royal VIVBuisman",
+    "Novo Nordisk",
+    "Convatec"
   ]
 }

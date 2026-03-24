@@ -1,0 +1,8 @@
+flask
+flask-cors
+python-dotenv
+mysql-connector-python
+requests
+deep-translator
+google-genai
+
