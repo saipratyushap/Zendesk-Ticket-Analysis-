@@ -44,7 +44,11 @@ The engine automatically classifies every ticket across the following dimensions
 
 ### 1. Backend Setup
 1. Navigate to `backend/`.
-2. Start the server:
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Start the server:
    ```bash
    python3 app.py
    ```
@@ -52,7 +56,11 @@ The engine automatically classifies every ticket across the following dimensions
 
 ### 2. Frontend Setup
 1. Navigate to `frontend-react/`.
-2. Start the development server:
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the development server:
    ```bash
    npm run dev -- --port 5174
    ```
