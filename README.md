@@ -36,7 +36,7 @@ The engine automatically classifies every ticket across the following dimensions
 - **Frontend**: [React (Vite)](file:///Users/psaipratyusha/Library/Mobile%20Documents/com~apple~CloudDocs/Zendesk%205/frontend-react) - Running on **Port 5174**.
 - **Backend**: [Flask (Python)](file:///Users/psaipratyusha/Library/Mobile%20Documents/com~apple~CloudDocs/Zendesk%205/backend) - Running on **Port 5003**.
 - **Database**: MySQL (`zendesk_demo`) with SQLite fallback for local development.
-- **Intelligence**: Gemini 2.0 Flash (Primary) with multi-model failover (Groq/Llama 3.3).
+- **Intelligence**: Gemini 2.0 Flash (Primary) with multi-model failover support.
 
 ---
 
@@ -99,14 +99,13 @@ Developed with 💎 by **Thirdeyedata**.
 Chain
 When a ticket is processed, the engine attempts to obtain structured insights in the following order:
 
-1. **Primary: Groq (Llama 3.3 70B)** ⚡
-   - Primary LPU-powered inference for ultra-fast performance.
-   - Handles the bulk of taxonomy classification and summarization.
-   - Automatic fallback if Groq hits rate limits or is unreachable.
-   - Provides consistent, high-intelligence analysis for complex cases.
-3. **Tertiary: xAI (Grok)** 🛡️
-   - Final cloud-based model redundancy to ensure high availability.
-4. **Final Fallback: Keyword-Powered Heuristics** ⚙️
+1. **Primary: Gemini 2.0 Flash** ⏳
+   - State-of-the-art reasoning for deep taxonomy classification and summarization.
+   - Handles the bulk of complex ticket analysis with consistent high intelligence.
+2. **Secondary: Groq (Llama 3.3 70B)** ⚡
+   - High-performance fallback if primary API hits rate limits or is unreachable.
+   - Provides ultra-fast inference for rapid classification recovery.
+3. **Final Fallback: Keyword-Powered Heuristics** ⚙️
    - Native Python NLP logic (using regex and keyword mapping).
    - Ensures that *every* ticket receives a classification, severity level, and summary, even if all external APIs are offline.
 
