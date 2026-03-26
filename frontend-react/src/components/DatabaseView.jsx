@@ -90,11 +90,12 @@ const DatabaseView = ({ isActive }) => {
   };
 
   useEffect(() => {
-    if (isActive && data.length > 0) {
-      const interval = setInterval(fetchData, 5000);
+    if (isActive) {
+      fetchData();
+      const interval = setInterval(fetchData, 8000);
       return () => clearInterval(interval);
     }
-  }, [isActive, data.length]);
+  }, [isActive]);
 
   return (
     <div className="database-view-container" style={containerStyle}>
@@ -105,14 +106,14 @@ const DatabaseView = ({ isActive }) => {
         </div>
         
         <div style={actionContainerStyle}>
-          <button onClick={handleDeleteAll} style={{ ...actionButtonStyle, background: '#dc2626' }}>
+          <button onClick={handleDeleteAll} disabled={loading || isSeeding} style={{ ...actionButtonStyle, background: '#dc2626', opacity: (loading || isSeeding) ? 0.6 : 1 }}>
             🗑️ Delete All
           </button>
-          <button onClick={handleSeed} disabled={isSeeding} style={{ ...actionButtonStyle, background: '#059669' }}>
+          <button onClick={handleSeed} disabled={loading || isSeeding} style={{ ...actionButtonStyle, background: '#059669', opacity: (loading || isSeeding) ? 0.6 : 1 }}>
             {isSeeding ? 'Seeding...' : '🌱 Repopulate Sample Data'}
           </button>
-          <button onClick={fetchData} style={{ ...actionButtonStyle, background: '#3b82f6' }}>
-            🔄 Refresh
+          <button onClick={fetchData} disabled={loading || isSeeding} style={{ ...actionButtonStyle, background: '#3b82f6', opacity: (loading || isSeeding) ? 0.6 : 1 }}>
+            {loading ? '🔄 Refreshing...' : '🔄 Refresh View'}
           </button>
         </div>
       </header>
@@ -134,7 +135,9 @@ const DatabaseView = ({ isActive }) => {
                 {!showAiColumns && <th style={{ ...thStyle, width: '180px' }}>Status</th>}
                 {showAiColumns && (
                   <>
-                    <th style={{ ...thStyle, width: '450px' }}>Strategic Roadmap</th>
+                    <th style={{ ...thStyle, width: '400px' }}>Strategic Roadmap</th>
+                    <th style={{ ...thStyle, width: '200px' }}>Root Cause (AI)</th>
+                    <th style={{ ...thStyle, width: '150px' }}>Category</th>
                     <th style={{ ...thStyle, width: '150px' }}>Severity</th>
                     <th style={{ ...thStyle, width: '140px' }}>Confidence</th>
                     <th style={{ ...thStyle, width: '200px' }}>Status</th>
@@ -179,9 +182,24 @@ const DatabaseView = ({ isActive }) => {
                     {showAiColumns && (
                       <>
                         <td style={{ padding: '30px 25px', borderLeft: '1px solid #e2e8f0' }}>
-                          <div style={{ color: '#475569', fontSize: '18px', fontWeight: 600, lineHeight: '1.5' }}>
+                          <div style={{ color: '#000000', fontSize: '20px', fontWeight: 900, lineHeight: '1.6' }}>
                             {row.solution_summary || '—'}
                           </div>
+                        </td>
+                        <td style={{ padding: '30px 25px', borderLeft: '1px solid #e2e8f0' }}>
+                          <div style={{ color: '#000000', fontSize: '20px', fontWeight: 900, lineHeight: '1.6', fontStyle: 'normal' }}>
+                            {row.root_cause || '—'}
+                          </div>
+                        </td>
+                        <td style={{ padding: '30px 25px', borderLeft: '1px solid #e2e8f0' }}>
+                          <span style={{ 
+                            fontSize: '15px', 
+                            fontWeight: 800, 
+                            color: '#4f46e5',
+                            textTransform: 'uppercase'
+                          }}>
+                            {row.issue_category || '—'}
+                          </span>
                         </td>
                         <td style={{ padding: '30px 25px', borderLeft: '1px solid #e2e8f0' }}>
                           <span style={{ 
