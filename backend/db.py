@@ -3,6 +3,7 @@ import json
 import sqlite3
 import mysql.connector  # pyre-ignore[21]
 from mysql.connector import pooling  # pyre-ignore[21]
+from datetime import datetime
 from pathlib import Path
 from dotenv import load_dotenv  # pyre-ignore[21]
 from typing import List, Dict, Union, Any, Optional, cast
@@ -103,6 +104,9 @@ def init_db() -> None:
             query("""
                 CREATE TABLE IF NOT EXISTS tickets (
                     id INT AUTO_INCREMENT PRIMARY KEY,
+                    Description TEXT,
+                    Email_Text TEXT,
+                    Comments TEXT,
                     problem_summary TEXT,
                     solution_summary TEXT,
                     company_name VARCHAR(255),
@@ -119,7 +123,7 @@ def init_db() -> None:
                     feature_request TEXT,
                     product_area VARCHAR(255),
                     confidence_score INT,
-                    status VARCHAR(50) DEFAULT 'analyzed',
+                    status VARCHAR(50) DEFAULT 'OPEN',
                     resolution_type VARCHAR(50) DEFAULT 'Unknown',
                     stakeholders JSON,
                     device_ids JSON,
@@ -132,7 +136,10 @@ def init_db() -> None:
             """)
 
             for col, coltype in [
-                ('status', "VARCHAR(50) DEFAULT 'analyzed'"),
+                ('Description', 'TEXT'),
+                ('Email_Text', 'TEXT'),
+                ('Comments', 'TEXT'),
+                ('status', "VARCHAR(50) DEFAULT 'OPEN'"),
                 ('stakeholders', 'JSON'),
                 ('device_ids', 'JSON'),
                 ('notes', 'TEXT'),
@@ -158,6 +165,42 @@ def init_db() -> None:
             """)
 
             _seed_kb_if_empty()
+            
+            # New Refined Tickets Table (MySQL)
+            query("""
+                CREATE TABLE IF NOT EXISTS refined_tickets (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    Description TEXT,
+                    Email_Text TEXT,
+                    Comments TEXT,
+                    problem_summary TEXT,
+                    solution_summary TEXT,
+                    company_name VARCHAR(255),
+                    issue_category VARCHAR(100),
+                    issue_subcategory VARCHAR(100),
+                    root_cause TEXT,
+                    suggested_action TEXT,
+                    ideal_resolution_tier VARCHAR(255),
+                    churn_risk VARCHAR(10),
+                    upsell_opportunity VARCHAR(10),
+                    expansion_signal VARCHAR(10),
+                    preventability VARCHAR(100),
+                    severity VARCHAR(20),
+                    feature_request TEXT,
+                    product_area VARCHAR(255),
+                    confidence_score INT,
+                    status VARCHAR(50) DEFAULT 'pending',
+                    resolution_type VARCHAR(50) DEFAULT 'Unknown',
+                    stakeholders JSON,
+                    device_ids JSON,
+                    notes TEXT,
+                    reasoning TEXT,
+                    conversation_thread JSON,
+                    processed_at TIMESTAMP NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            seed_tickets()
 
         except Exception as e:
             print(f'MySQL connection failed, falling back to SQLite: {e}')
@@ -169,6 +212,9 @@ def init_db() -> None:
         conn.execute("""
             CREATE TABLE IF NOT EXISTS tickets (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                Description TEXT,
+                Email_Text TEXT,
+                Comments TEXT,
                 problem_summary TEXT,
                 solution_summary TEXT,
                 company_name TEXT,
@@ -185,7 +231,7 @@ def init_db() -> None:
                 feature_request TEXT,
                 product_area TEXT,
                 confidence_score INTEGER,
-                status TEXT DEFAULT 'analyzed',
+                status TEXT DEFAULT 'OPEN',
                 resolution_type TEXT DEFAULT 'Unknown',
                 stakeholders TEXT,
                 device_ids TEXT,
@@ -200,7 +246,10 @@ def init_db() -> None:
         print('Connected to SQLite database')
 
         for col, coltype in [
-            ('status', "TEXT DEFAULT 'analyzed'"),
+            ('Description', 'TEXT'),
+            ('Email_Text', 'TEXT'),
+            ('Comments', 'TEXT'),
+            ('status', "TEXT DEFAULT 'OPEN'"),
             ('stakeholders', 'TEXT'),
             ('device_ids', 'TEXT'),
             ('notes', 'TEXT'),
@@ -228,6 +277,42 @@ def init_db() -> None:
         conn.commit()
 
         _seed_kb_if_empty()
+
+        # New Refined Tickets Table (SQLite)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS refined_tickets (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                Description TEXT,
+                Email_Text TEXT,
+                Comments TEXT,
+                problem_summary TEXT,
+                solution_summary TEXT,
+                company_name TEXT,
+                issue_category TEXT,
+                issue_subcategory TEXT,
+                root_cause TEXT,
+                suggested_action TEXT,
+                ideal_resolution_tier TEXT,
+                churn_risk TEXT,
+                upsell_opportunity TEXT,
+                expansion_signal TEXT,
+                preventability TEXT,
+                severity TEXT,
+                feature_request TEXT,
+                product_area TEXT,
+                confidence_score INTEGER,
+                status TEXT DEFAULT 'pending',
+                resolution_type TEXT DEFAULT 'Unknown',
+                stakeholders TEXT,
+                device_ids TEXT,
+                notes TEXT,
+                reasoning TEXT,
+                conversation_thread TEXT,
+                processed_at DATETIME,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        conn.commit()
 
 
 def _seed_kb_if_empty() -> None:
@@ -324,16 +409,142 @@ def ensure_kb_articles() -> None:
     print('KB articles verified ✅')
 
 
+def seed_tickets() -> None:
+    try:
+        # Step 1: Clear existing data for a fresh start
+        print('Resetting tickets table for repopulation...')
+        query('DELETE FROM tickets')
+        
+        # Reset auto-increment
+        db_type = _get_db_type()
+        if db_type == 'sqlite':
+            try:
+                query("DELETE FROM sqlite_sequence WHERE name='tickets'")
+            except Exception:
+                pass
+        elif db_type == 'mysql':
+            try:
+                query("ALTER TABLE tickets AUTO_INCREMENT = 1")
+            except Exception:
+                pass
+                
+        # Step 2: Insert 10 fresh sample records (Production-Grade)
+        samples = [
+            ("Novo Nordisk", "MB77 Offline Production Issue", "MB77 production line went offline at 02:30 AM. Operator reports intermittent PLC-to-gateway communication failure. Restart attempts did not restore connectivity. Production is currently stopped and impacting output KPIs.", "Critical line stoppage.", "NO", "YES", "YES"),
+            ("Arla Foods", "SSO Login Failure (Arla Users)", "SSO login is failing for multiple Arla users after recent security update. Some users can log in successfully while others receive 403 Forbidden error. Issue may be related to Azure AD token validation or identity provider misconfiguration.", "Identity/Access issue.", "YES", "NO", "NO"),
+            ("Danish Crown", "Contamination Button Request (Line 12)", "Customer requests addition of a “Contamination” button on Line 12 for stop reason classification. Requirement is needed for compliance reporting and improved OEE tracking across production shifts.", "Feature request.", "NO", "YES", "NO"),
+            ("Radiometer Medical", "Factbird Duo Migration Issue", "Need to migrate configuration from old Factbird Duo device to a new unit. Customer wants to ensure all settings, mappings, and connectivity parameters are copied without data loss or downtime.", "Device migration.", "NO", "NO", "YES"),
+            ("Royal Unibrew", "OEE Report Email Failure", "Weekly OEE report emails have not been delivered for the last 3 cycles. Backend logs show repeated SMTP timeout errors. Manufacturing team relies on this report for KPI monitoring.", "Report delivery failure.", "YES", "NO", "NO"),
+            ("Convatec", "Gateway Firmware Update Request", "Customer requests firmware update for IoT gateway devices deployed across multiple sites. Concern about compatibility with existing PLC integrations and potential downtime during update.", "Maintenance request.", "NO", "YES", "NO"),
+            ("Kepware / PTC", "PLC Connectivity Drop (Kepware)", "Intermittent connectivity drop observed between PLC devices and Kepware OPC server. Issue causes data gaps in production monitoring dashboard. Problem appears to occur randomly every few hours.", "Connectivity stability.", "NO", "NO", "YES"),
+            ("Factbird Internal", "New User Account Request", "Request to create new login account for employee “Peter” in production monitoring system. User requires access to dashboard and reporting modules with read-only permissions.", "User management.", "NO", "NO", "NO"),
+            ("Developer Support", "API Documentation Request", "Customer is requesting updated API documentation for integrating Factbird data into internal ERP system. Needs authentication flow, endpoint list, and example payloads.", "Technical support.", "NO", "YES", "NO"),
+            ("Customer Service", "Sensor Signal Scaling Issue", "Sensor readings from Line 5 are showing incorrect scaling values in dashboard. Raw data appears correct but transformed values are inconsistent, causing incorrect production metrics.", "Calibration issue.", "NO", "NO", "NO")
+        ]
+        ph = '?' if db_type == 'sqlite' else '%s'
+        for comp, desc, email_text, comm, churn, upsell, expansion in samples:
+            query(
+                f'INSERT INTO tickets (company_name, Description, Email_Text, Comments, status, churn_risk, upsell_opportunity, expansion_signal) VALUES ({ph}, {ph}, {ph}, {ph}, "OPEN", {ph}, {ph}, {ph})',
+                [comp, desc, email_text, comm, churn, upsell, expansion]
+            )
+        print('Tickets table successfully reset and seeded with 10 production-grade records ✅')
+    except Exception as e:
+        print(f'Seeding failed: {e}')
+        raise
+
+
+def update_refined_ticket(ticket_id: int, data: Dict[str, Any]) -> Any:
+    ph = '?' if _get_db_type() == 'sqlite' else '%s'
+    
+    confidence_raw = data.get('confidence_score', 0)
+    confidence = float(confidence_raw) if confidence_raw is not None else 0.0
+    if confidence <= 1.0:
+        confidence = round(confidence * 100)
+    elif confidence <= 10.0:
+        confidence = round(confidence * 10)
+    else:
+        confidence = round(confidence)
+        
+    status = data.get('status') or ('synced' if confidence >= 70 else 'pending_review')
+    
+    churn_raw = data.get('churn_risk', 'NO')
+    churn = 'YES' if churn_raw in (True, 'YES', 'yes', 'Yes') else 'NO'
+    upsell_raw = data.get('upsell_opportunity', 'NO')
+    upsell = 'YES' if upsell_raw in (True, 'YES', 'yes', 'Yes') else 'NO'
+    exp_raw = data.get('expansion_signal', 'No')
+    expansion = 'Yes' if exp_raw in (True, 'YES', 'yes', 'Yes') else 'No'
+
+    sql = f"""
+        UPDATE refined_tickets SET
+            problem_summary = {ph},
+            solution_summary = {ph},
+            company_name = {ph},
+            issue_category = {ph},
+            issue_subcategory = {ph},
+            root_cause = {ph},
+            suggested_action = {ph},
+            ideal_resolution_tier = {ph},
+            churn_risk = {ph},
+            upsell_opportunity = {ph},
+            expansion_signal = {ph},
+            preventability = {ph},
+            severity = {ph},
+            feature_request = {ph},
+            product_area = {ph},
+            confidence_score = {ph},
+            status = {ph},
+            resolution_type = {ph},
+            stakeholders = {ph},
+            device_ids = {ph},
+            notes = {ph},
+            reasoning = {ph},
+            conversation_thread = {ph},
+            processed_at = {ph}
+        WHERE id = {ph}
+    """
+
+    params = [
+        data.get('problem_summary'),
+        data.get('solution_summary'),
+        data.get('company_name', 'Customer'),
+        data.get('issue_category') or 'Uncategorized',
+        data.get('issue_subcategory') or '',
+        data.get('root_cause') or '',
+        data.get('suggested_action') or '',
+        data.get('ideal_resolution_tier') or 'Tier 1',
+        churn,
+        upsell,
+        expansion,
+        data.get('preventability') or 'Not Preventable',
+        data.get('severity'),
+        data.get('feature_request'),
+        data.get('product_area'),
+        confidence,
+        status,
+        data.get('resolution_type') or 'Unknown',
+        json.dumps(data.get('stakeholders') or []),
+        json.dumps(data.get('device_ids') or []),
+        data.get('notes') or '',
+        data.get('reasoning') or '',
+        json.dumps(data.get('conversation_thread') or []),
+        datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        ticket_id
+    ]
+
+    return query(sql, params)
+
+
 def insert_ticket(data: Dict[str, Any]) -> Any:
     ph = '?' if _get_db_type() == 'sqlite' else '%s'
     sql = f"""
         INSERT INTO tickets (
+            Description, Email_Text, Comments,
             problem_summary, solution_summary, company_name, issue_category,
             issue_subcategory, root_cause, suggested_action, ideal_resolution_tier,
             churn_risk, upsell_opportunity, expansion_signal, preventability, severity, feature_request,
             product_area, confidence_score, status, resolution_type,
             stakeholders, device_ids, notes, reasoning, conversation_thread, processed_at
-        ) VALUES ({','.join([ph]*24)})
+        ) VALUES ({','.join([ph]*27)})
     """
 
     confidence_raw = data.get('confidence_score', 0)
@@ -347,25 +558,8 @@ def insert_ticket(data: Dict[str, Any]) -> Any:
     else:
         confidence = round(confidence)
         
-    # Auto-sync high-confidence tickets; low-confidence tickets need manual review
     status = data.get('status') or ('synced' if confidence >= 70 else 'pending_review')
-    
-    try:
-        # Fallback to specific companies if AI fails to identify one
-        _known = ["Royal VIVBuisman", "Novo Nordisk", "Convatec"]
-        company = data.get('company_name') or data.get('customer') or ''
-        if not company or company in ('Unknown', 'Customer') or str(company).lower().startswith('unknown'):
-            try:
-                cnt_row = query("SELECT COUNT(*) as cnt FROM tickets")
-                if isinstance(cnt_row, list) and len(cnt_row) > 0:
-                    cnt = cast(Dict[str, int], cnt_row[0]).get('cnt', 0)
-                    company = _known[cnt % len(_known)]
-                else:
-                    company = _known[0]
-            except Exception:
-                company = _known[0]
-    except Exception:
-        company = 'Customer'
+    company = data.get('company_name') or data.get('customer') or 'Customer'
             
     churn_raw = data.get('churn_risk', 'NO')
     churn = 'YES' if churn_raw in (True, 'YES', 'yes', 'Yes') else 'NO'
@@ -375,6 +569,9 @@ def insert_ticket(data: Dict[str, Any]) -> Any:
     expansion = 'Yes' if exp_raw in (True, 'YES', 'yes', 'Yes') else 'No'
 
     params = [
+        data.get('Description') or data.get('Description_Raw') or '',
+        data.get('Email_Text') or data.get('Email_Text_Raw') or '',
+        data.get('Comments') or data.get('Comments_Raw') or '',
         data.get('problem_summary'),
         data.get('solution_summary'),
         company,
@@ -408,30 +605,13 @@ def migrate_ticket_statuses() -> None:
     """Normalize stored confidence scores to 0-100 and set status based on threshold."""
     try:
         db_type = _get_db_type()
-        ph = '%s' if db_type == 'mysql' else '?'
-
         # Step 1: normalize scores stored as 0-1 (e.g. 0.8 → 80)
-        if db_type == 'mysql':
-            query("UPDATE tickets SET confidence_score = ROUND(confidence_score * 100) WHERE confidence_score > 0 AND confidence_score <= 1")
-            query("UPDATE tickets SET confidence_score = ROUND(confidence_score * 10)  WHERE confidence_score > 1  AND confidence_score <= 10")
-        else:
-            query("UPDATE tickets SET confidence_score = ROUND(confidence_score * 100) WHERE confidence_score > 0 AND confidence_score <= 1")
-            query("UPDATE tickets SET confidence_score = ROUND(confidence_score * 10)  WHERE confidence_score > 1  AND confidence_score <= 10")
+        query("UPDATE tickets SET confidence_score = ROUND(confidence_score * 100) WHERE confidence_score > 0 AND confidence_score <= 1")
+        query("UPDATE tickets SET confidence_score = ROUND(confidence_score * 10)  WHERE confidence_score > 1  AND confidence_score <= 10")
 
         # Step 2: auto-sync tickets with confidence >= 70; mark the rest as pending_review
         query("UPDATE tickets SET status = 'synced'         WHERE CAST(confidence_score AS DECIMAL) >= 70 AND status != 'synced'")
         query("UPDATE tickets SET status = 'pending_review' WHERE CAST(confidence_score AS DECIMAL) <  70 AND status != 'synced'")
-
-        # Step 3: rotate company names for unidentified tickets using id % len(companies)
-        _companies = ["Royal VIVBuisman", "Novo Nordisk", "Convatec"]
-        n = len(_companies)
-        # Condition: tickets with no real company (Unknown, Customer, empty, or old demo names)
-        fallback_condition = "company_name IN ('Unknown','Customer','Factbird','Arla Foods','') OR company_name IS NULL OR company_name LIKE 'Unknown%'"
-        for i, co in enumerate(_companies):
-            if db_type == 'mysql':
-                query(f"UPDATE tickets SET company_name = %s WHERE ({fallback_condition}) AND MOD(id, {n}) = {i}", [co])
-            else:
-                query(f"UPDATE tickets SET company_name = ? WHERE ({fallback_condition}) AND (id % {n}) = {i}", [co])
 
         print('Ticket status migration complete ✅')
     except Exception as e:

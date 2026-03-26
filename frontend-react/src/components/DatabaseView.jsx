@@ -1,278 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { getDatabaseView } from '../api';
+import { getDatabaseView, clearTickets, seedTickets, closeTicket } from '../api';
 
-const DatabaseView = ({ isActive }) => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('processed'); // Default to Processed (Synced)
-
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const rows = await getDatabaseView();
-      setData(rows || []);
-    } catch (err) {
-      console.error('Failed to fetch database view:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (isActive) {
-      fetchData();
-    }
-  }, [isActive]);
-
-  const filteredData = data.filter(row => {
-    if (filter === 'processed') {
-      // Processed means: Synced status AND has AI content AND confidence >= 70%
-      return row.status === 'synced' && !!row.problem_summary && row.confidence_score >= 70;
-    }
-    if (filter === 'pending') {
-      // Pending means: (Pending/Open/Missing status) OR (Synced but confidence < 70)
-      const isPendingStatus = row.status === 'pending_review' || row.status === 'open' || !row.status;
-      const isLowConfidenceSync = row.status === 'synced' && row.confidence_score < 70;
-      return (isPendingStatus || isLowConfidenceSync) && row.confidence_score > 0;
-    }
-    return true;
-  });
-
-  const getConfidenceColor = (score) => {
-    if (score >= 70) return '#059669'; // 70%+ is now Green
-    if (score >= 50) return '#d97706'; // Mid range is Orange
-    return '#dc2626'; // Low is Red
-  };
-
-  const formatDate = (dateStr) => {
-    if (!dateStr) return '—';
-    return new Date(dateStr).toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-   const tdAIContentStyle = (hasContent) => ({
-    ...tdStyle,
-    background: hasContent ? '#f0f9ff' : 'transparent',
-    fontSize: '20px', // Matched to Ticket Context
-    lineHeight: '1.5',
-    color: '#000000',
-    fontWeight: 900, // Matched to Ticket Context
-    borderLeft: '2px solid #e2e8f0',
-  });
-
-  return (
-    <div className="database-view-container" style={containerStyle}>
-      <header style={headerStyle}>
-        <div>
-          <h1 style={titleStyle}>Database Records: AI Analysis Proof</h1>
-          <p style={subtitleStyle}>Definitive proof of technical field enrichment and sync status</p>
-        </div>
-        
-        <div style={filterContainerStyle}>
-          <button
-            onClick={() => setFilter('processed')}
-            style={filterButtonStyle(filter === 'processed')}
-          >
-            ✅ Processed (Synced)
-          </button>
-          <button
-            onClick={() => setFilter('pending')}
-            style={filterButtonStyle(filter === 'pending')}
-          >
-            ⏳ Pending Review
-          </button>
-          <button onClick={fetchData} className="refresh-btn" style={refreshButtonStyle}>
-            🔄 Refresh Records
-          </button>
-        </div>
-      </header>
-
-      <div className="records-card" style={tableWrapperStyle}>
-        {loading ? (
-          <div style={loadingStyle}>
-            <div className="spinner"></div>
-            <p>Accessing Hardcoded Database Persistence Layer...</p>
-          </div>
-        ) : (
-          <table style={tableStyle}>
-            <thead>
-              <tr>
-                <th style={thIdStyle}>ID</th>
-                <th style={thDetailsStyle}>Ticket Context</th>
-                <th style={thStatusStyle}>Sync Status</th>
-                <th style={thAIStyle}>Problem Summary (AI)</th>
-                <th style={thAIStyle}>Root Cause (AI)</th>
-                <th style={thAIStyle}>Solution (AI)</th>
-                <th style={{ ...thStyle, width: '120px' }}>Conf</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredData.map((row) => {
-                const hasAI = !!row.problem_summary;
-                return (
-                  <tr key={row.id} style={trStyle}>
-                    <td style={tdIdStyle}>#{row.id}</td>
-                    <td style={tdDetailsStyle}>
-                      <div style={{ fontWeight: 900, color: '#000000', fontSize: '20px' }}>{row.company_name}</div>
-                      <div style={{ fontSize: '15px', color: '#1e293b', marginTop: '6px', fontWeight: 600 }}>{row.issue_category}</div>
-                    </td>
-                    <td style={tdStyle}>
-                      <span style={statusBadgeStyle(row.status)}>
-                        {row.status || 'open'}
-                      </span>
-                    </td>
-                    <td style={tdAIContentStyle(hasAI)}>
-                      {row.problem_summary || <span style={{ color: '#94a3b8', fontStyle: 'italic', fontWeight: 400 }}>Awaiting Intelligence Sweep...</span>}
-                    </td>
-                    <td style={tdAIContentStyle(hasAI)}>
-                      {row.root_cause || '—'}
-                    </td>
-                    <td style={tdAIContentStyle(hasAI)}>
-                      {row.solution_summary || '—'}
-                    </td>
-                    <td style={tdStyle}>
-                      {(row.confidence_score !== undefined && row.confidence_score !== null) ? (
-                        <div style={confidenceBadgeStyle(getConfidenceColor(row.confidence_score))}>
-                          {row.confidence_score}%
-                        </div>
-                      ) : (
-                        <div style={{ color: '#94a3b8' }}>—</div>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-
-        {!loading && filteredData.length === 0 && (
-          <div style={emptyStyle}>
-            <span style={{ fontSize: '64px' }}>📦</span>
-            <h2 style={{ fontSize: '28px', color: '#1e293b', marginBottom: '10px' }}>No records in this state</h2>
-            <p style={{ fontSize: '18px' }}>Perform an "Intelligence Sweep" to move tickets to Processed.</p>
-          </div>
-        )}
-      </div>
-
-      <style>{`
-        .database-view-container {
-          animation: fadeIn 0.4s ease-out;
-          font-family: 'Inter', sans-serif;
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        .refresh-btn:hover {
-          filter: brightness(1.2);
-          transform: translateY(-2px);
-        }
-        .spinner {
-          width: 50px;
-          height: 50px;
-          border: 6px solid #e2e8f0;
-          border-left-color: #000000;
-          border-radius: 50%;
-          animation: spin 0.8s linear infinite;
-          margin-bottom: 20px;
-        }
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-        tbody tr:hover {
-          background-color: #f8fafc !important;
-        }
-      `}</style>
-    </div>
-  );
-};
-
-// Styles
-const containerStyle = {
-  padding: '40px',
-  width: '100%',
-  minHeight: '100vh',
-  background: '#f8fafc',
-};
-
-const headerStyle = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  marginBottom: '50px',
-};
-
-const titleStyle = {
-  fontSize: '48px',
-  fontWeight: 900,
-  color: '#000000',
-  marginBottom: '12px',
-  letterSpacing: '-0.04em',
-};
-
-const subtitleStyle = {
-  color: '#1e293b',
-  fontSize: '22px',
-  fontWeight: 600,
-  opacity: 0.8,
-};
-
-const filterContainerStyle = {
-  display: 'flex',
-  gap: '15px',
-  background: '#ffffff',
-  padding: '10px',
-  borderRadius: '20px',
-  boxShadow: '0 10px 25px rgba(0,0,0,0.05)',
-  border: '1px solid #e2e8f0',
-};
-
-const filterButtonStyle = (active) => ({
-  padding: '14px 28px',
-  borderRadius: '14px',
-  border: 'none',
-  fontSize: '16px',
-  fontWeight: 800,
-  cursor: 'pointer',
-  background: active ? '#000000' : 'transparent',
-  color: active ? '#ffffff' : '#475569',
-  transition: 'all 0.3s ease',
-  boxShadow: active ? '0 8px 20px rgba(0,0,0,0.2)' : 'none',
-});
-
-const refreshButtonStyle = {
-  marginLeft: '10px',
-  padding: '14px 28px',
-  borderRadius: '14px',
-  border: 'none',
-  background: '#3b82f6',
-  color: '#ffffff',
-  fontWeight: 800,
-  fontSize: '16px',
-  cursor: 'pointer',
-  transition: 'all 0.3s ease',
-  boxShadow: '0 8px 20px rgba(59, 130, 246, 0.3)',
-};
-
-const tableWrapperStyle = {
-  background: '#ffffff',
-  borderRadius: '32px',
-  border: '2px solid #000000',
-  boxShadow: '0 40px 80px -20px rgba(0,0,0,0.15)',
-  overflow: 'hidden',
-  width: '100%',
-};
-
-const tableStyle = {
-  width: '100%',
-  borderCollapse: 'collapse',
-  textAlign: 'left',
-};
-
+// Premium Styling Tokens (copied from Tickets.jsx for consistency)
 const thStyle = {
   padding: '30px 25px',
   background: '#000000',
@@ -283,59 +12,15 @@ const thStyle = {
   letterSpacing: '0.1em',
 };
 
-const thIdStyle = { ...thStyle, width: '80px' };
-const thDetailsStyle = { ...thStyle, width: '250px' };
-const thStatusStyle = { ...thStyle, width: '150px' };
-const thAIStyle = { ...thStyle, background: '#1e293b', borderLeft: '1px solid rgba(255,255,255,0.1)' };
-const thScoreStyle = { ...thStyle, width: '100px' };
-const thDateStyle = { ...thStyle, width: '200px' };
-
-const trStyle = {
-  borderBottom: '1px solid #e2e8f0',
-  transition: 'all 0.2s ease',
-};
-
-const tdStyle = {
-  padding: '30px 25px',
-  fontSize: '16px',
-  color: '#000000',
-};
-
-const tdIdStyle = {
-  ...tdStyle,
-  color: '#64748b',
-  fontWeight: 800,
-  fontSize: '14px',
-};
-
-const tdDetailsStyle = {
-  ...tdStyle,
-};
-
-const tdAIContentStyle = (isProcessed) => ({
-  ...tdStyle,
-  background: isProcessed ? '#f0f9ff' : 'transparent',
-  fontSize: '15px',
-  lineHeight: '1.7',
-  color: isProcessed ? '#000000' : '#94a3b8',
-  fontWeight: isProcessed ? 500 : 400,
-  borderLeft: '1px solid #e2e8f0',
-});
-
-const tdDateStyle = {
-  ...tdStyle,
-  fontSize: '14px',
-  borderLeft: '1px solid #e2e8f0',
-};
-
-const statusBadgeStyle = (status) => {
+const statusBadgeStyleRaw = (status) => {
   const colors = {
     synced: { bg: '#dcfce7', text: '#15803d', border: '#86efac' },
+    CLOSED: { bg: '#dcfce7', text: '#15803d', border: '#86efac' },
     pending_review: { bg: '#fef3c7', text: '#b45309', border: '#fcd34d' },
     analyzed: { bg: '#e0f2fe', text: '#0369a1', border: '#7dd3fc' },
-    open: { bg: '#f1f5f9', text: '#334155', border: '#cbd5e1' }
+    OPEN: { bg: '#f1f5f9', text: '#334155', border: '#cbd5e1' }
   };
-  const theme = colors[status] || colors.open;
+  const theme = colors[status] || colors.OPEN;
   return {
     padding: '10px 20px',
     borderRadius: '12px',
@@ -345,33 +30,262 @@ const statusBadgeStyle = (status) => {
     background: theme.bg,
     color: theme.text,
     border: `2px solid ${theme.border}`,
+    display: 'inline-block',
+    whiteSpace: 'nowrap'
   };
 };
 
-const confidenceBadgeStyle = (color) => ({
-  padding: '10px 15px',
-  borderRadius: '10px',
-  background: color,
-  color: '#fff',
-  fontWeight: 900,
-  fontSize: '15px',
-  textAlign: 'center',
-  display: 'inline-block',
-  minWidth: '60px',
-});
+const DatabaseView = ({ isActive }) => {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [isSeeding, setIsSeeding] = useState(false);
+  const [showAiColumns, setShowAiColumns] = useState(false);
 
-const loadingStyle = {
-  padding: '150px',
-  textAlign: 'center',
-  color: '#000000',
-  fontWeight: 700,
-  fontSize: '20px',
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const rows = await getDatabaseView();
+      setData(rows || []);
+      const hasAnyAi = rows && rows.some(r => !!r.problem_summary);
+      if (hasAnyAi) setShowAiColumns(true);
+    } catch (err) {
+      console.error('Failed to fetch database view:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    if (!window.confirm('Delete all records?')) return;
+    try {
+      await clearTickets();
+      setData([]);
+      setShowAiColumns(false);
+    } catch (err) {
+      alert('Failed to clear');
+    }
+  };
+
+  const handleSeed = async () => {
+    setIsSeeding(true);
+    try {
+      await seedTickets();
+      setShowAiColumns(false);
+      await fetchData();
+    } catch (err) {
+      alert('Failed to seed');
+    } finally {
+      setIsSeeding(false);
+    }
+  };
+
+  const handleClose = async (id) => {
+    try {
+      await closeTicket(id);
+      setShowAiColumns(true);
+      await fetchData();
+    } catch (err) {
+      alert('Failed to close/process');
+    }
+  };
+
+  useEffect(() => {
+    if (isActive && data.length > 0) {
+      const interval = setInterval(fetchData, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [isActive, data.length]);
+
+  return (
+    <div className="database-view-container" style={containerStyle}>
+      <header style={headerStyle}>
+        <div>
+          <h1 style={titleStyle}>Database View</h1>
+          <p style={subtitleStyle}>Premium AI Intelligence Pipeline Explorer</p>
+        </div>
+        
+        <div style={actionContainerStyle}>
+          <button onClick={handleDeleteAll} style={{ ...actionButtonStyle, background: '#dc2626' }}>
+            🗑️ Delete All
+          </button>
+          <button onClick={handleSeed} disabled={isSeeding} style={{ ...actionButtonStyle, background: '#059669' }}>
+            {isSeeding ? 'Seeding...' : '🌱 Repopulate Sample Data'}
+          </button>
+          <button onClick={fetchData} style={{ ...actionButtonStyle, background: '#3b82f6' }}>
+            🔄 Refresh
+          </button>
+        </div>
+      </header>
+
+      <div className="records-card" style={tableWrapperStyle}>
+        {data.length === 0 ? (
+          <div style={emptyStyle}>
+            <span style={{ fontSize: '48px' }}>🔍</span>
+            <h2 style={{ color: '#64748b' }}>No Data Populated</h2>
+            <p>Click "Repopulate Sample Data" to start the simulation.</p>
+          </div>
+        ) : (
+          <table style={tableStyle}>
+            <thead>
+              <tr>
+                <th style={{ ...thStyle, width: '80px' }}>ID</th>
+                <th style={{ ...thStyle, width: '220px' }}>Company</th>
+                <th style={{ ...thStyle, width: '500px' }}>Problem Summary (AI)</th>
+                {!showAiColumns && <th style={{ ...thStyle, width: '180px' }}>Status</th>}
+                {showAiColumns && (
+                  <>
+                    <th style={{ ...thStyle, width: '450px' }}>Strategic Roadmap</th>
+                    <th style={{ ...thStyle, width: '150px' }}>Severity</th>
+                    <th style={{ ...thStyle, width: '140px' }}>Confidence</th>
+                    <th style={{ ...thStyle, width: '200px' }}>Status</th>
+                  </>
+                )}
+                <th style={{ ...thStyle, width: '120px', textAlign: 'right' }}>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.map((row) => {
+                const customerName = row.company_name || 'Factbird User';
+                const severity = (row.severity || 'Medium').toLowerCase();
+                const confidence = Math.round(row.confidence_score || 0);
+
+                return (
+                  <tr key={row.id} style={trStyle} onMouseOver={(e) => e.currentTarget.style.background = '#f8fafc'} onMouseOut={(e) => e.currentTarget.style.background = 'white'}>
+                    <td style={{ padding: '30px 25px', color: '#64748b', fontWeight: 800, fontSize: '18px' }}>#{row.id}</td>
+                    <td style={{ padding: '30px 25px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <img
+                          src={`https://ui-avatars.com/api/?name=${encodeURIComponent(customerName)}&background=f1f5f9&color=668f45&bold=true`}
+                          alt=""
+                          style={{ width: '52px', height: '52px', borderRadius: '12px' }}
+                        />
+                        <span style={{ fontWeight: 900, color: '#000000', fontSize: '24px' }}>{customerName}</span>
+                      </div>
+                    </td>
+                    <td style={{ padding: '30px 25px', background: row.problem_summary ? '#f0f9ff' : 'transparent', borderLeft: '2px solid #e2e8f0' }}>
+                      <span style={{ color: '#000000', fontSize: '20px', fontWeight: 900, lineHeight: '1.6', display: 'block' }}>
+                        {row.problem_summary || row.Description || 'Pending Processing...'}
+                      </span>
+                    </td>
+                    
+                    {!showAiColumns && (
+                      <td style={{ padding: '30px 25px', borderLeft: '1px solid #e2e8f0' }}>
+                        <span style={statusBadgeStyleRaw(row.status === 'pending_review' ? 'CLOSED' : row.status)}>
+                          {(row.status === 'pending_review' ? 'CLOSED' : row.status).replace(/_/g, ' ')}
+                        </span>
+                      </td>
+                    )}
+
+                    {showAiColumns && (
+                      <>
+                        <td style={{ padding: '30px 25px', borderLeft: '1px solid #e2e8f0' }}>
+                          <div style={{ color: '#475569', fontSize: '18px', fontWeight: 600, lineHeight: '1.5' }}>
+                            {row.solution_summary || '—'}
+                          </div>
+                        </td>
+                        <td style={{ padding: '30px 25px', borderLeft: '1px solid #e2e8f0' }}>
+                          <span style={{ 
+                            fontSize: '18px', 
+                            fontWeight: 800, 
+                            textTransform: 'uppercase',
+                            color: severity === 'critical' ? '#dc2626' : (severity === 'high' ? '#ea580c' : '#64748b')
+                          }}>
+                            {severity}
+                          </span>
+                        </td>
+                        <td style={{ padding: '30px 25px', borderLeft: '1px solid #e2e8f0' }}>
+                          <div style={{
+                            padding: '10px 15px',
+                            borderRadius: '10px',
+                            background: confidence >= 80 ? '#059669' : (confidence >= 60 ? '#d97706' : '#dc2626'),
+                            color: '#fff',
+                            fontWeight: 900,
+                            fontSize: '15px',
+                            textAlign: 'center',
+                            display: 'inline-block',
+                            minWidth: '60px'
+                          }}>
+                            {confidence}%
+                          </div>
+                        </td>
+                        <td style={{ padding: '30px 25px', borderLeft: '1px solid #e2e8f0' }}>
+                          <span style={statusBadgeStyleRaw(row.status === 'pending_review' ? 'CLOSED' : row.status)}>
+                            {(row.status === 'pending_review' ? 'CLOSED' : row.status).replace(/_/g, ' ')}
+                          </span>
+                        </td>
+                      </>
+                    )}
+
+                    <td style={{ padding: '30px 25px', borderLeft: '1px solid #e2e8f0', textAlign: 'right' }}>
+                      {row.status === 'OPEN' && (
+                        <button onClick={() => handleClose(row.id)} style={closeButtonStyle}>
+                          🔒 Close Ticket
+                        </button>
+                      )}
+                      {(row.status === 'CLOSED' || row.status === 'pending_review') && (
+                        <span style={{ color: '#059669', fontWeight: 900, fontSize: '14px', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+                          ✅ PROCESSED
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      <style>{`
+        .database-view-container { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+      `}</style>
+    </div>
+  );
 };
 
-const emptyStyle = {
-  padding: '150px',
-  textAlign: 'center',
-  color: '#64748b',
+// Layout Styles
+const containerStyle = { padding: '40px', background: '#f8fafc', minHeight: '100vh', fontFamily: "'Inter', sans-serif" };
+const headerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' };
+const titleStyle = { fontSize: '48px', fontWeight: 900, color: '#000000', marginBottom: '12px', letterSpacing: '-0.04em' };
+const subtitleStyle = { color: '#1e293b', fontSize: '22px', fontWeight: 600, opacity: 0.8 };
+const actionContainerStyle = { display: 'flex', gap: '16px', alignItems: 'center' };
+const actionButtonStyle = { 
+  background: '#3b82f6', 
+  color: '#ffffff', 
+  padding: '16px 28px', 
+  borderRadius: '14px', 
+  border: 'none', 
+  fontSize: '16px', 
+  fontWeight: 800, 
+  cursor: 'pointer',
+  boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
+  transition: 'all 0.3s ease'
+};
+
+const tableWrapperStyle = { 
+  background: '#ffffff', 
+  borderRadius: '32px', 
+  border: '2px solid #000000', 
+  boxShadow: '0 40px 80px -20px rgba(0,0,0,0.15)', 
+  overflow: 'hidden' 
+};
+
+const tableStyle = { width: '100%', borderCollapse: 'collapse', textAlign: 'left' };
+const trStyle = { borderBottom: '1px solid #e2e8f0', transition: 'all 0.2s ease' };
+const emptyStyle = { padding: '100px', textAlign: 'center' };
+
+const closeButtonStyle = {
+  background: '#000000',
+  color: '#ffffff',
+  padding: '12px 24px',
+  borderRadius: '12px',
+  border: 'none',
+  fontSize: '14px',
+  fontWeight: 900,
+  textTransform: 'uppercase',
+  cursor: 'pointer',
+  letterSpacing: '0.05em'
 };
 
 export default DatabaseView;

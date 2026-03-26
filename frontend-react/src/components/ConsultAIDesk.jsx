@@ -34,7 +34,8 @@ export default function ConsultAIDesk({ showToast }) {
       margin: '0 auto',
       minHeight: '100vh',
       position: 'relative',
-      overflow: 'hidden'
+      overflow: 'hidden',
+      fontFamily: "'Inter', sans-serif"
     }}>
       {/* Background Glows */}
       <div style={{ position: 'absolute', top: '-10%', right: '-5%', width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(102, 143, 69, 0.15) 0%, transparent 70%)', filter: 'blur(60px)', zIndex: -1 }}></div>

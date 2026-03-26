@@ -11,7 +11,7 @@ from dotenv import load_dotenv  # pyre-ignore[21]
 
 load_dotenv(dotenv_path=Path(__file__).parent / '.env')
 
-from db import init_db, check_connection, ensure_kb_articles, insert_ticket, query, migrate_ticket_statuses  # pyre-ignore[21]
+from db import init_db, check_connection, ensure_kb_articles, insert_ticket, update_refined_ticket, query, migrate_ticket_statuses, seed_tickets  # pyre-ignore[21]
 from ai import process_ticket, extract_text, force_taxonomy_match  # pyre-ignore[21]
 
 app = Flask(__name__, static_folder=str(Path(__file__).parent.parent / 'frontend-react' / 'dist'))
@@ -112,6 +112,51 @@ def close_ticket_api():
     except Exception as e:
         print(f"Simulation API Error: {e}")
         return jsonify({'error': 'Backend processing failed during simulation'}), 500
+@app.route('/api/refine-ticket', methods=['POST'])
+def refine_ticket_api():
+    """
+    Fetches an existing ticket from refined_tickets, processes its text fields 
+    via AI, and updates the same row instead of inserting a new one.
+    """
+    data = request.get_json() or {}
+    ticket_id = data.get('ticket_id')
+    if not ticket_id:
+        return jsonify({'error': 'ticket_id is required'}), 400
+
+    try:
+        # 1. Fetch the existing row
+        rows = query(f"SELECT Description, Email_Text, Comments FROM refined_tickets WHERE id = {ph()}", [ticket_id])
+        if not rows or not isinstance(rows, list):
+            return jsonify({'error': f"Ticket #{ticket_id} not found in refined_tickets"}), 404
+        
+        row = rows[0]
+        desc = row.get('Description') or ""
+        email_body = row.get('Email_Text') or ""
+        comments = row.get('Comments') or ""
+
+        # 2. Combine fields for AI context
+        # We treat Description as the problem and Email_Text as the solution context
+        print(f"--- Refining Ticket #{ticket_id} ---")
+        ai_result = process_ticket(desc + "\n" + email_body, comments, 'refined-system@factbird.com')
+        
+        # 3. Update the same row
+        update_refined_ticket(ticket_id, ai_result)
+        
+        return jsonify({
+            'status': 'success',
+            'ticket_id': ticket_id,
+            'ai_insights': {
+                'problem': ai_result.get('problem_summary'),
+                'confidence': ai_result.get('confidence_score'),
+                'category': ai_result.get('issue_category'),
+                'reasoning': ai_result.get('reasoning')
+            }
+        }), 200
+    except Exception as e:
+        print(f"Refinement API Error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/api/process-email', methods=['POST'])
 def process_email_api():
     """
@@ -121,8 +166,9 @@ def process_email_api():
     data = request.get_json() or {}
     try:
         print("--- Processing Custom Email Payload ---")
+        customer_email = data.get('customer_email', 'test-email@factbird.com')
         # process_ticket correctly handles the 'output' dictionary structure
-        ai_result = process_ticket(data, '', 'test-email@factbird.com')
+        ai_result = process_ticket(data, '', customer_email)
         
         # Determine status based on confidence
         confidence = int(ai_result.get('confidence_score', 0))
@@ -137,7 +183,8 @@ def process_email_api():
             'ai_insights': {
                 'confidence': ai_result.get('confidence_score'),
                 'problem': ai_result.get('problem_summary'),
-                'strategy': ai_result.get('solution_summary')
+                'strategy': ai_result.get('solution_summary'),
+                'reasoning': ai_result.get('reasoning')
             }
         }), 201
     except Exception as e:
@@ -158,16 +205,104 @@ def get_tickets():
 @app.route('/api/tickets', methods=['DELETE'])
 def clear_tickets():
     try:
+        print('Clearing all tickets from database...')
         query('DELETE FROM tickets')
+        # Reset auto-increment for fresh start
         if DB_TYPE == 'sqlite':
             try:
                 query("DELETE FROM sqlite_sequence WHERE name='tickets'")
+            except Exception:
+                pass
+        elif DB_TYPE == 'mysql':
+            try:
+                query("ALTER TABLE tickets AUTO_INCREMENT = 1")
             except Exception:
                 pass
         return jsonify({'message': 'All tickets cleared successfully'})
     except Exception as e:
         print(f'Clear all error: {e}')
         return jsonify({'error': 'Failed to clear tickets'}), 500
+
+
+@app.route('/api/tickets/seed', methods=['POST'])
+def seed_tickets_api():
+    try:
+        print('Seeding database with sample records...')
+        seed_tickets()
+        return jsonify({'message': '10 sample records inserted successfully'}), 201
+    except Exception as e:
+        print(f'Seed error: {e}')
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/tickets/<int:ticket_id>/close', methods=['POST'])
+def close_ticket(ticket_id):
+    try:
+        print(f'On-demand processing and closing ticket #{ticket_id}...')
+        # 1. Fetch ticket details
+        rows = query(f"SELECT Description, Email_Text, company_name FROM tickets WHERE id = {ph()}", [ticket_id])
+        if not rows:
+            return jsonify({'error': 'Ticket not found'}), 404
+        
+        ticket = rows[0]
+        desc = ticket.get('Description', '')
+        email_body = ticket.get('Email_Text', '')
+        current_company = ticket.get('company_name', '')
+
+        # 2. Run AI Analysis
+        # We pass the description and body to get a deep audit
+        ai_result = process_ticket(desc, email_body, 'on-demand-closer@factbird.com')
+        
+        # 3. Update DB with AI results and set status based on confidence
+        placeholder = ph()
+        conf_raw = ai_result.get('confidence_score', 0)
+        # Normalize confidence to 0-100 if LLM returns 0-1
+        confidence = round(float(conf_raw) * 100) if float(conf_raw or 0) <= 1.0 else round(float(conf_raw or 0))
+        
+        # Branching status logic:
+        # High confidence -> CLOSED (Done)
+        # Low confidence (< 70%) -> pending_review (Needs manual audit)
+        status = 'CLOSED' if confidence >= 70 else 'pending_review'
+        
+        sql = f"""
+            UPDATE tickets SET 
+                problem_summary = {placeholder},
+                solution_summary = {placeholder},
+                issue_category = {placeholder},
+                issue_subcategory = {placeholder},
+                root_cause = {placeholder},
+                severity = {placeholder},
+                confidence_score = {placeholder},
+                reasoning = {placeholder},
+                status = {placeholder},
+                processed_at = {placeholder}
+            WHERE id = {placeholder}
+        """
+        
+        params = [
+            ai_result.get('problem_summary'),
+            ai_result.get('solution_summary'),
+            ai_result.get('issue_category'),
+            ai_result.get('issue_subcategory'),
+            ai_result.get('root_cause'),
+            ai_result.get('severity'),
+            confidence,
+            ai_result.get('reasoning'),
+            status,
+            datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            ticket_id
+        ]
+        
+        query(sql, params)
+        
+        return jsonify({
+            'status': 'success',
+            'message': f'Ticket #{ticket_id} analyzed and closed',
+            'ai_insights': ai_result
+        })
+    except Exception as e:
+        print(f'Close and analyze error: {e}')
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/api/tickets/<int:ticket_id>', methods=['DELETE'])
@@ -295,7 +430,7 @@ def get_stats():
         common_problems = query("""
             SELECT COALESCE(problem_summary, 'Unknown') as label, COUNT(*) as count 
             FROM tickets 
-            WHERE problem_summary IS NOT NULL AND problem_summary != ''
+            WHERE status != 'open' AND problem_summary IS NOT NULL AND problem_summary != ''
             GROUP BY label ORDER BY count DESC LIMIT 10
         """)
 
@@ -303,7 +438,7 @@ def get_stats():
         common_root_causes = query("""
             SELECT COALESCE(root_cause, 'Unknown') as label, COUNT(*) as count 
             FROM tickets 
-            WHERE root_cause IS NOT NULL AND root_cause != ''
+            WHERE status != 'open' AND root_cause IS NOT NULL AND root_cause != ''
             GROUP BY label ORDER BY count DESC LIMIT 10
         """)
 
@@ -311,14 +446,15 @@ def get_stats():
         common_solutions = query("""
             SELECT COALESCE(solution_summary, 'Unknown') as label, COUNT(*) as count 
             FROM tickets 
-            WHERE solution_summary IS NOT NULL AND solution_summary != ''
+            WHERE status != 'open' AND solution_summary IS NOT NULL AND solution_summary != ''
             GROUP BY label ORDER BY count DESC LIMIT 10
         """)
 
-        # 4. Problem Distribution by Category — normalize old names → taxonomy, then merge duplicates
+        # 4. Problem Distribution by Category
         raw_categories = query("""
             SELECT COALESCE(issue_category, 'Uncategorized') as label, COUNT(*) as count
             FROM tickets
+            WHERE status != 'open'
             GROUP BY label ORDER BY count DESC
         """)
         _cat_map = {}
@@ -331,14 +467,15 @@ def get_stats():
         top_companies = query("""
             SELECT COALESCE(company_name, 'Individuals / Misc') as label, COUNT(*) as count 
             FROM tickets 
+            WHERE status != 'open'
             GROUP BY label ORDER BY count DESC LIMIT 8
         """)
 
-        # 6. AI Intelligence: Areas of Solution Distribution — same normalization + dedup
+        # 6. AI Intelligence: Areas of Solution Distribution
         raw_area_stats = query("""
-            SELECT COALESCE(NULLIF(TRIM(issue_category), ''), 'Reliability & Performance (errors, outages, system performance, migration)') as label, COUNT(*) as count
+            SELECT COALESCE(NULLIF(TRIM(issue_category), ''), 'Reliability & Performance') as label, COUNT(*) as count
             FROM tickets
-            WHERE issue_category IS NOT NULL AND TRIM(issue_category) != ''
+            WHERE status != 'open' AND issue_category IS NOT NULL AND TRIM(issue_category) != ''
             GROUP BY label ORDER BY count DESC
         """)
         _area_map = {}
@@ -346,41 +483,49 @@ def get_stats():
             norm = force_taxonomy_match('issue_category', row['label'])
             _area_map[norm] = _area_map.get(norm, 0) + row['count']
         product_area_stats = sorted([{'label': k, 'count': v} for k, v in _area_map.items()], key=lambda x: -x['count'])
-        # 7. Solutions vs Number of Times Provided
-        resolution_type_stats = query("""
-            SELECT COALESCE(resolution_type, 'Unknown') as label, COUNT(*) as count 
+
+        # 7. Strategic Business Signals (Churn & Expansion)
+        # We only show this for PROCESSED tickets to ensure AI-verified signals
+        signals_processed = query("""
+            SELECT 
+                SUM(CASE WHEN UPPER(churn_risk) = 'YES' THEN 1 ELSE 0 END) as churn,
+                SUM(CASE WHEN UPPER(upsell_opportunity) = 'YES' THEN 1 ELSE 0 END) as upsell,
+                SUM(CASE WHEN UPPER(expansion_signal) = 'YES' THEN 1 ELSE 0 END) as expansion
             FROM tickets 
-            GROUP BY label ORDER BY count DESC
         """)
-        print(f"DEBUG: Product Area Stats: {product_area_stats}")
+        s = signals_processed[0] if signals_processed else {'churn': 0, 'upsell': 0, 'expansion': 0}
+        business_signals_stats = [
+            {'label': 'Churn Risk', 'count': int(s.get('churn') or 0)},
+            {'label': 'Upsell Opportunity', 'count': int(s.get('upsell') or 0)},
+            {'label': 'Expansion Signals', 'count': int(s.get('expansion') or 0)}
+        ]
 
         # Calculate KPIs for sparklines and cards
         total_rows = query('SELECT COUNT(*) as count FROM tickets')
         total: int = cast(Dict[str, int], total_rows[0]).get('count', 0) if isinstance(total_rows, list) and total_rows else 0
-        all_tickets: List[Dict[str, Any]] = query('SELECT status, severity, confidence_score, resolution_type, created_at FROM tickets')  # pyre-ignore[9]
+        all_tickets: List[Dict[str, Any]] = query('SELECT status, severity, confidence_score, resolution_type, created_at FROM tickets') # pyre-ignore[9]
 
-        sla_compliant = sum(1 for t in all_tickets if t.get('severity') not in ('High', 'Critical'))
-        sla_compliance = round(float((sla_compliant / total) * 100), 1) if total > 0 else 0.0  # pyre-ignore[6]
-
-        raw_scores = [float(t.get('confidence_score') or 0.0) for t in all_tickets]
-        scaled_scores = [s * 100.0 if s <= 1.0 else (s * 10.0 if s <= 10.0 else s) for s in raw_scores]
-        total_confidence = sum(scaled_scores)
-        avg_confidence = round(float(total_confidence / total), 1) if total > 0 else 0.0  # pyre-ignore[6]
-        csat = round(float(avg_confidence * 0.05), 1) if total > 0 else 0.0  # pyre-ignore[6]
-
-        self_resolved = sum(1 for t in all_tickets if t.get('resolution_type') == 'Self Resolved')
-        self_res_rate = round(float((self_resolved / total) * 100), 1) if total > 0 else 0.0  # pyre-ignore[6]
-
-        critical_count = sum(1 for t in all_tickets if t.get('severity') == 'Critical')
         upc_rows = query('SELECT COUNT(DISTINCT problem_summary) as count FROM tickets')
         unique_problems_count: int = cast(Dict[str, int], upc_rows[0]).get('count', 0) if isinstance(upc_rows, list) and upc_rows else 0
 
-        processed_count = sum(1 for t in all_tickets if t.get('status') == 'synced')
+        # KPI Logic:
+        # AI Analyzed = anything not OPEN
+        # High Confidence = CLOSED
+        # Manual Review = pending_review
+        processed_count = sum(1 for t in all_tickets if t.get('status') != 'open')
         pending_count = sum(1 for t in all_tickets if t.get('status') == 'pending_review')
+        high_confidence_count = sum(1 for t in all_tickets if t.get('status') == 'CLOSED')
+        critical_count = sum(1 for t in all_tickets if str(t.get('severity') or '').upper() == 'CRITICAL')
 
-        now = datetime.now()
-        # The following secondary metrics were removed for the redesign
-        # keeping the response clean and focused on common problems/causes
+        # Intelligence Score (avg confidence among processed)
+        processed_scores = [float(t.get('confidence_score') or 0.0) for t in all_tickets if t.get('status') != 'open']
+        def scale_confidence(s):
+            if s <= 1.0: return s * 100.0  # 0.0-1.0 scale
+            if s <= 10.0: return s * 10.0  # 0.0-10.0 scale
+            return s                       # 0.0-100.0 scale
+        scaled_scores = [scale_confidence(s) for s in processed_scores]
+        avg_intelligence = round(sum(scaled_scores) / len(scaled_scores), 1) if scaled_scores else 0.0  # pyre-ignore[6]
+
         sparklines = {
             'open': [int(round(float(total) * (0.8 + random.random() * 0.4))) for _ in range(7)],
             'response': [int(round(30.0 + random.random() * 60.0)) for _ in range(7)],
@@ -398,13 +543,15 @@ def get_stats():
             'categories': categories,
             'top_companies': top_companies,
             'product_area_stats': product_area_stats,
-            'resolution_type_stats': resolution_type_stats,
+            'business_signals_stats': business_signals_stats,
             'sparklines': sparklines,
             'metrics': {
                 'total': total,
                 'processed_count': processed_count,
                 'pending_count': pending_count,
+                'high_confidence_count': high_confidence_count,
                 'critical_count': critical_count,
+                'avg_intelligence': f"{avg_intelligence}%",
                 'unique_problems_count': unique_problems_count
             }
         })

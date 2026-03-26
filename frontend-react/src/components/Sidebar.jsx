@@ -1,9 +1,9 @@
 export default function Sidebar({ activePage, setActivePage }) {
   const navItems = [
-    { id: 'dashboard', icon: '🏠', label: 'Dashboard' },
-    { id: 'tickets', icon: '🎫', label: 'Tickets' },
+    { id: 'dashboard', icon: '🏠', label: 'Home' },
     { id: 'database-view', icon: '🗄️', label: 'Database View' },
-    { id: 'reports', icon: '📊', label: 'Analytics' },
+    { id: 'tickets', icon: '🎫', label: 'Outstanding Tickets' },
+    { id: 'reports', icon: '📊', label: 'Dashboard' },
     { id: 'consult', icon: '🤖', label: 'Consult AI Desk' },
   ]
 

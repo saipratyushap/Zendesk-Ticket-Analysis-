@@ -17,6 +17,8 @@ export const createTicket = (data) => fetch(`${API_URL}/tickets`, {
 
 export const deleteTicket = (id) => fetch(`${API_URL}/tickets/${id}`, { method: 'DELETE' }).then(r => r.json());
 export const clearTickets = () => fetch(`${API_URL}/tickets`, { method: 'DELETE' }).then(r => r.json());
+export const seedTickets = () => fetch(`${API_URL}/tickets/seed`, { method: 'POST' }).then(r => r.json());
+export const closeTicket = (id) => fetch(`${API_URL}/tickets/${id}/close`, { method: 'POST' }).then(r => r.json());
 
 export const approveTicket = (id) => fetch(`${API_URL}/tickets/${id}/approve`, { method: 'PATCH' }).then(r => r.json());
 

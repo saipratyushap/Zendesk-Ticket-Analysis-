@@ -9,7 +9,7 @@ const BASE_OPTIONS = {
   plugins: {
     legend: {
       position: 'bottom',
-      labels: { color: '#475569', font: { family: "'Outfit', sans-serif", size: 12 }, padding: 20, usePointStyle: true }
+      labels: { color: '#475569', font: { family: "'Inter', sans-serif", size: 12 }, padding: 20, usePointStyle: true }
     },
     tooltip: {
       backgroundColor: '#ffffff',
@@ -28,8 +28,8 @@ const BASE_OPTIONS = {
 }
 
 const LINEAR_SCALES = {
-  x: { grid: { display: false }, ticks: { color: '#64748b', font: { family: 'Outfit' } } },
-  y: { grid: { color: '#f1f5f9' }, ticks: { color: '#64748b', font: { family: 'Outfit' } } }
+  x: { grid: { display: false }, ticks: { color: '#64748b', font: { family: 'Inter' } } },
+  y: { grid: { color: '#f1f5f9' }, ticks: { color: '#64748b', font: { family: 'Inter' } } }
 }
 
 function useChart(ref, buildConfig, deps) {
@@ -112,11 +112,30 @@ export default function Reports({ stats, isActive }) {
       options: { 
         ...BASE_OPTIONS, 
         indexAxis: 'y', 
+        layout: { padding: { left: 100 } },
         scales: { 
           x: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 14, weight: 'bold' } } },
-          y: { grid: { display: false }, ticks: { font: { size: 16, weight: '600' }, color: '#1e293b' } }
+          y: { 
+            grid: { display: false }, 
+            ticks: { 
+              font: { size: 14, weight: '600' }, 
+              color: '#1e293b',
+              callback: function(value) {
+                const label = this.getLabelForValue(value);
+                return label.length > 50 ? label.substring(0, 47) + '...' : label;
+              }
+            } 
+          }
         },
-        plugins: { legend: { display: false } } 
+        plugins: { 
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              title: (items) => items[0].label, // Show full label in tooltip title
+              label: (item) => `Frequency: ${item.raw}`
+            }
+          }
+        } 
       }
     })
 
@@ -197,27 +216,50 @@ export default function Reports({ stats, isActive }) {
       }
     })
 
-    // 3. Solutions vs Number of Times Provided
+    // 3. Strategic Business Signals (Donut Chart)
     createChart(solutionRef, {
-      type: 'bar',
+      type: 'doughnut',
       data: {
-        labels: (stats.resolution_type_stats || []).map(s => s.label),
+        labels: (stats.business_signals_stats || []).map(s => s.label),
         datasets: [{
-          label: 'Times Provided',
-          data: (stats.resolution_type_stats || []).map(s => s.count),
-          backgroundColor: '#10b981',
-          borderRadius: 8
+          data: (stats.business_signals_stats || []).map(s => s.count),
+          backgroundColor: ['#ef4444', '#3b82f6', '#10b981'],
+          borderWidth: 0,
+          hoverOffset: 15
         }]
       },
       options: {
         ...BASE_OPTIONS,
-        indexAxis: 'y',
-        scales: {
-          x: { grid: { color: '#f1f5f9' }, ticks: { precision: 0 } },
-          y: { grid: { display: false }, ticks: { font: { weight: '600' } } }
-        },
+        cutout: '65%',
         plugins: {
-          legend: { display: false }
+          legend: { 
+            display: true,
+            position: 'bottom',
+            labels: {
+              padding: 25,
+              usePointStyle: true,
+              font: { size: 14, weight: '700' }
+            }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+            padding: 18,
+            cornerRadius: 16,
+            titleFont: { size: 18, weight: 'bold' },
+            bodyFont: { size: 15 },
+            displayColors: true,
+            callbacks: {
+              label: (item) => {
+                const label = item.label;
+                const desc = {
+                  'Churn Risk': '🚩 Critical: Potential customer loss detected.',
+                  'Upsell Opportunity': '💎 Growth: Value expansion potential identified.',
+                  'Expansion Signals': '📈 Scale: Infrastructure expansion signal detected.'
+                }[label] || 'AI Intelligence Signal';
+                return [`Count: ${item.raw}`, `Analysis: ${desc}`];
+              }
+            }
+          }
         }
       }
     })
@@ -231,108 +273,173 @@ export default function Reports({ stats, isActive }) {
   const m = stats.metrics || {}
 
   return (
-    <section className="reports-section-light" style={{ padding: '40px', background: 'white', borderRadius: '24px' }}>
-      <div className="reports-header-refined" style={{ marginBottom: '40px', borderBottom: '1px solid #f1f5f9', paddingBottom: '30px' }}>
-        <div className="header-left">
-          <h1 style={{ color: '#1e293b', fontSize: '34px', fontWeight: 800 }}>Zendesk AI Ticket Analysis</h1>
-          <p style={{ color: '#64748b' }}>Advanced analytics and trend mapping for all analyzed tickets.</p>
-        </div>
-        <div className="header-right">
-          {/* Last 30 Days button removed per user request */}
-        </div>
+    <section className="reports-section-premium" style={{ 
+      padding: '40px', 
+      background: '#f8fafc', 
+      borderRadius: '32px',
+      position: 'relative',
+      overflow: 'hidden',
+      fontFamily: "'Inter', sans-serif"
+    }}>
+      {/* Background Glows */}
+      <div style={{ position: 'absolute', top: '-10%', right: '-5%', width: '600px', height: '600px', background: 'radial-gradient(circle, rgba(102, 143, 69, 0.1) 0%, transparent 70%)', filter: 'blur(100px)', zIndex: 0 }}></div>
+      <div style={{ position: 'absolute', bottom: '10%', left: '-5%', width: '700px', height: '700px', background: 'radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%)', filter: 'blur(120px)', zIndex: 0 }}></div>
+
+      <div className="reports-header-refined" style={{ position: 'relative', zIndex: 1, marginBottom: '60px', textAlign: 'left' }}>
+        <h1 style={{ 
+          color: '#000000', 
+          fontSize: '56px', 
+          fontWeight: 950, 
+          letterSpacing: '-0.05em',
+          marginBottom: '10px'
+        }}>
+          Zendesk AI Dashboard
+        </h1>
+        <p style={{ color: '#475569', fontSize: '24px', fontWeight: 600, opacity: 0.8 }}>Advanced analytics and trend mapping for all analyzed tickets.</p>
       </div>
 
       {/* KPI GRID */}
-      <div className="metrics-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', marginBottom: '40px' }}>
+      <div className="metrics-row" style={{ position: 'relative', zIndex: 1, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', marginBottom: '40px' }}>
         {[
-          { label: 'Total Tickets', val: m.total || '0', trend: '+12%', color: '#668f45', ref: sparkOpenRef, icon: '📄' },
-          { label: 'Processed (Synced)', val: m.processed_count || '0', trend: 'Auto-verified', color: '#3b82f6', ref: sparkResRef, icon: '✅' },
-          { label: 'Pending Review', val: m.pending_count || '0', trend: 'Awaiting Action', color: '#ffca00', ref: sparkCsatRef, icon: '⏳' },
-          { label: 'Problem Clusters', val: m.unique_problems_count || '0', trend: 'Patterns', color: '#668f45', ref: sparkSlaRef, icon: '🧩' }
+          { label: 'Total Tickets', val: m.total || '0', trend: 'Total Volume', color: '#1e293b', ref: sparkOpenRef, icon: '📄', border: 'linear-gradient(90deg, #1e293b, #64748b)' },
+          { label: 'Intelligence Score', val: m.avg_intelligence || '0%', trend: 'Avg confidence', color: '#3b82f6', ref: sparkSlaRef, icon: '🧠', border: 'linear-gradient(90deg, #3b82f6, #2563eb)' },
+          { label: 'Urgent (Critical)', val: m.critical_count || '0', trend: 'High Priority', color: '#ef4444', ref: sparkResRef, icon: '🚨', border: 'linear-gradient(90deg, #ef4444, #dc2626)' },
+          { label: 'Manual Audit', val: m.pending_count || '0', trend: 'Needs Review', color: '#f59e0b', ref: sparkCsatRef, icon: '⏳', border: 'linear-gradient(90deg, #f59e0b, #d97706)' }
         ].map((card, i) => (
-          <div key={i} className="metric-card-light" style={{ 
-            background: 'white', 
-            padding: '30px', 
-            borderRadius: '24px', 
-            border: '1px solid #f1f5f9', 
-            boxShadow: '0 10px 20px -5px rgba(0,0,0,0.04)',
-            transition: 'transform 0.3s ease'
+          <div key={i} className="metric-card-glass" style={{ 
+            background: 'rgba(255, 255, 255, 0.8)', 
+            backdropFilter: 'blur(20px)',
+            padding: '35px', 
+            borderRadius: '32px', 
+            border: '1px solid rgba(255, 255, 255, 0.7)', 
+            boxShadow: '0 20px 40px rgba(0,0,0,0.04)',
+            transition: 'transform 0.3s ease',
+            position: 'relative',
+            overflow: 'hidden'
           }}>
-            <div className="metric-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-              <span className="metric-label" style={{ color: '#64748b', fontSize: '22px', fontWeight: 700, letterSpacing: '-0.01em' }}>{card.label}</span>
+            <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '6px', background: card.border }}></div>
+            
+            <div className="metric-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '25px' }}>
+              <span className="metric-label" style={{ color: '#64748b', fontSize: '16px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{card.label}</span>
               <span className="metric-icon" style={{ 
-                fontSize: '28px', 
+                fontSize: '24px', 
                 background: '#f8fafc', 
-                width: '48px', 
-                height: '48px', 
+                width: '44px', 
+                height: '44px', 
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: 'center', 
-                borderRadius: '14px',
-                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)'
+                borderRadius: '12px',
               }}>{card.icon}</span>
             </div>
-            <div className="metric-value" style={{ fontSize: '44px', fontWeight: 800, color: '#1e293b', marginBottom: '12px', letterSpacing: '-0.02em', lineHeight: 1 }}>{card.val}</div>
-            <div className="metric-footer" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-              {card.trend && <span className={`metric-trend ${card.down ? 'down' : 'up'}`} style={{ color: card.down ? '#ef4444' : '#668f45', fontSize: '20px', fontWeight: 700 }}>{card.trend}</span>}
-              {card.stars && <span style={{ color: '#ffca00', letterSpacing: '2px', fontSize: '18px' }}>★★★★☆</span>}
+            <div className="metric-value" style={{ fontSize: '52px', fontWeight: 950, color: '#000000', marginBottom: '15px', letterSpacing: '-0.04em', lineHeight: 1 }}>{card.val}</div>
+            <div className="metric-footer" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '25px' }}>
+              <span style={{ color: card.color, fontSize: '18px', fontWeight: 800 }}>{card.trend}</span>
             </div>
-            <div className="metric-sparkline" style={{ height: '44px' }}><canvas ref={card.ref}></canvas></div>
+            <div className="metric-sparkline" style={{ height: '50px', opacity: 0.6 }}><canvas ref={card.ref}></canvas></div>
           </div>
         ))}
       </div>
+
        {/* 1. MOST COMMON PROBLEMS */}
-      <div className="charts-row full-width-card" style={{ marginBottom: '40px' }}>
-        <div className="chart-card-light" style={{ background: 'white', padding: '40px', borderRadius: '32px', border: '1px solid #f1f5f9', boxShadow: '0 10px 30px rgba(0,0,0,0.04)' }}>
-          <div style={{ marginBottom: '30px' }}>
-            <h3 style={{ fontSize: '32px', fontWeight: 800, color: '#1e293b', marginBottom: '8px' }}>1. Most Common Problems</h3>
-            <p style={{ color: '#64748b', fontSize: '20px' }}>Frequency of unique problem summaries across all tickets.</p>
+      <div className="charts-row full-width-card" style={{ position: 'relative', zIndex: 1, marginBottom: '40px' }}>
+        <div className="chart-card-glass" style={{ 
+          background: 'rgba(255, 255, 255, 0.8)', 
+          backdropFilter: 'blur(20px)',
+          padding: '50px', 
+          borderRadius: '40px', 
+          border: '1px solid rgba(255, 255, 255, 0.7)', 
+          boxShadow: '0 30px 60px rgba(0,0,0,0.06)' 
+        }}>
+          <div style={{ marginBottom: '40px' }}>
+            <h3 style={{ fontSize: '38px', fontWeight: 950, color: '#000000', marginBottom: '10px', letterSpacing: '-0.03em' }}>1. Most Common Problems</h3>
+            <p style={{ color: '#475569', fontSize: '20px', fontWeight: 600, opacity: 0.7 }}>Frequency of unique problem summaries identified by AI.</p>
           </div>
-          <div className="chart-container" style={{ height: '500px' }}><canvas ref={subcategoryRef}></canvas></div>
+          <div className="chart-container" style={{ height: '600px' }}><canvas ref={subcategoryRef}></canvas></div>
         </div>
       </div>
 
-      <div className="charts-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px', marginBottom: '40px' }}>
-        {/* 2. AI INTELLIGENCE: AREAS OF SOLUTION DISTRIBUTION */}
-        <div className="chart-card-light" style={{ background: 'white', padding: '40px', borderRadius: '32px', border: '1px solid #f1f5f9', boxShadow: '0 10px 30px rgba(0,0,0,0.04)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '30px' }}>
-            <div>
-              <h3 style={{ fontSize: '28px', fontWeight: 800, color: '#1e293b', marginBottom: '8px' }}>Areas of Solution Distribution</h3>
-              <p style={{ color: '#64748b', fontSize: '18px' }}>Distribution of technical areas being resolved.</p>
-            </div>
-            <div style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Distribution</div>
+      <div className="charts-row" style={{ position: 'relative', zIndex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px', marginBottom: '32px' }}>
+        {/* 2. AREAS OF SOLUTION DISTRIBUTION */}
+        <div className="chart-card-glass" style={{ 
+          background: 'rgba(255, 255, 255, 0.8)', 
+          backdropFilter: 'blur(20px)',
+          padding: '45px', 
+          borderRadius: '40px', 
+          border: '1px solid rgba(255, 255, 255, 0.7)', 
+          boxShadow: '0 30px 60px rgba(0,0,0,0.06)' 
+        }}>
+          <div style={{ marginBottom: '40px' }}>
+            <h3 style={{ fontSize: '32px', fontWeight: 950, color: '#000000', marginBottom: '10px', letterSpacing: '-0.03em' }}>Areas of Solution Distribution</h3>
+            <p style={{ color: '#475569', fontSize: '18px', fontWeight: 600, opacity: 0.7 }}>Distribution of technical focal areas being resolved.</p>
           </div>
           <div className="chart-container" style={{ height: '400px' }}><canvas ref={rootCauseRef}></canvas></div>
         </div>
+        
         {/* 4. PROBLEM DISTRIBUTION BY CATEGORY */}
-        <div className="chart-card-light" style={{ background: 'white', padding: '40px', borderRadius: '32px', border: '1px solid #f1f5f9', boxShadow: '0 10px 30px rgba(0,0,0,0.04)' }}>
-          <div style={{ marginBottom: '30px' }}>
-            <h3 style={{ fontSize: '28px', fontWeight: 800, color: '#1e293b', marginBottom: '8px' }}>4. Problem Distribution by Category</h3>
-            <p style={{ color: '#64748b', fontSize: '18px' }}>System component breakdown generating ticket volume.</p>
+        <div className="chart-card-glass" style={{ 
+          background: 'rgba(255, 255, 255, 0.8)', 
+          backdropFilter: 'blur(20px)',
+          padding: '45px', 
+          borderRadius: '40px', 
+          border: '1px solid rgba(255, 255, 255, 0.7)', 
+          boxShadow: '0 30px 60px rgba(0,0,0,0.06)' 
+        }}>
+          <div style={{ marginBottom: '40px' }}>
+            <h3 style={{ fontSize: '32px', fontWeight: 950, color: '#000000', marginBottom: '10px', letterSpacing: '-0.03em' }}>4. Problem Distribution by Category</h3>
+            <p style={{ color: '#475569', fontSize: '18px', fontWeight: 600, opacity: 0.7 }}>System component breakdown generating analyzed volume.</p>
           </div>
           <div className="chart-container" style={{ height: '400px' }}><canvas ref={statusRef}></canvas></div>
         </div>
       </div>
 
-      <div className="charts-row" style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr', gap: '32px', marginBottom: '40px' }}>
+      <div className="charts-row" style={{ position: 'relative', zIndex: 1, display: 'grid', gridTemplateColumns: '2fr 1.2fr', gap: '32px' }}>
         {/* 5. TOP IMPACTING ACCOUNTS */}
-        <div className="chart-card-light" style={{ background: 'white', padding: '40px', borderRadius: '32px', border: '1px solid #f1f5f9', boxShadow: '0 10px 30px rgba(0,0,0,0.04)' }}>
-          <div className="chart-header">
-            <h3>5. Top Impacting Accounts</h3>
-            <p>Highest ticket volume generated by specific client organizations.</p>
+        <div className="chart-card-glass" style={{ 
+          background: 'rgba(255, 255, 255, 0.8)', 
+          backdropFilter: 'blur(20px)',
+          padding: '45px', 
+          borderRadius: '40px', 
+          border: '1px solid rgba(255, 255, 255, 0.7)', 
+          boxShadow: '0 30px 60px rgba(0,0,0,0.06)' 
+        }}>
+          <div style={{ marginBottom: '40px' }}>
+            <h3 style={{ fontSize: '32px', fontWeight: 950, color: '#000000', marginBottom: '10px', letterSpacing: '-0.03em' }}>5. Top Impacting Accounts</h3>
+            <p style={{ color: '#475569', fontSize: '18px', fontWeight: 600, opacity: 0.7 }}>Highest ticket volume generated by client organizations.</p>
           </div>
-          <div className="chart-container" style={{ height: '450px' }}><canvas ref={volumeRef}></canvas></div>
+          <div className="chart-container" style={{ height: '500px' }}><canvas ref={volumeRef}></canvas></div>
         </div>
 
-        {/* 3. RESOLUTION TYPE BREAKDOWN */}
-        <div className="chart-card-light" style={{ background: 'white', padding: '40px', borderRadius: '32px', border: '1px solid #f1f5f9', boxShadow: '0 10px 30px rgba(0,0,0,0.04)' }}>
-          <div style={{ marginBottom: '30px' }}>
-            <h3 style={{ fontSize: '28px', fontWeight: 800, color: '#1e293b', marginBottom: '8px' }}>Resolution Type Breakdown</h3>
-            <p style={{ color: '#64748b', fontSize: '18px' }}>How tickets are being resolved across all categories.</p>
+        {/* 3. STRATEGIC BUSINESS SIGNALS */}
+        <div className="chart-card-glass" style={{ 
+          background: 'rgba(255, 255, 255, 0.8)', 
+          backdropFilter: 'blur(20px)',
+          padding: '45px', 
+          borderRadius: '40px', 
+          border: '1px solid rgba(255, 255, 255, 0.7)', 
+          boxShadow: '0 30px 60px rgba(0,0,0,0.06)' 
+        }}>
+          <div style={{ marginBottom: '40px' }}>
+            <h3 style={{ fontSize: '32px', fontWeight: 950, color: '#000000', marginBottom: '10px', letterSpacing: '-0.03em' }}>Strategic Business Signals</h3>
+            <p style={{ color: '#475569', fontSize: '18px', fontWeight: 600, opacity: 0.7 }}>AI-detected churn risks, upsells, and expansion opportunities.</p>
           </div>
-          <div className="chart-container" style={{ height: '450px' }}><canvas ref={solutionRef}></canvas></div>
+          <div className="chart-container" style={{ height: '500px' }}><canvas ref={solutionRef}></canvas></div>
         </div>
       </div>
+
+      <style>{`
+        .metric-card-glass:hover {
+          transform: translateY(-8px);
+          box-shadow: 0 40px 80px rgba(0,0,0,0.08);
+          background: rgba(255, 255, 255, 0.95) !important;
+        }
+        .chart-card-glass:hover {
+          background: rgba(255, 255, 255, 1) !important;
+          border-color: #668f4544;
+          transform: scale(1.005);
+          transition: all 0.4s ease;
+        }
+      `}</style>
     </section>
   )
 }

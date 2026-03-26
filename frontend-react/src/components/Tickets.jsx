@@ -42,120 +42,159 @@ export default function Tickets({ tickets, onShowTicket, showToast, refreshData 
     }
   }
 
+  const statusBadgeStyle = (status) => {
+    const colors = {
+      synced: { bg: '#dcfce7', text: '#15803d', border: '#86efac' },
+      pending_review: { bg: '#fef3c7', text: '#b45309', border: '#fcd34d' },
+      analyzed: { bg: '#e0f2fe', text: '#0369a1', border: '#7dd3fc' },
+      open: { bg: '#f1f5f9', text: '#334155', border: '#cbd5e1' }
+    };
+    const theme = colors[status] || colors.open;
+    return {
+      padding: '10px 20px',
+      borderRadius: '12px',
+      fontSize: '13px',
+      fontWeight: 900,
+      textTransform: 'uppercase',
+      background: theme.bg,
+      color: theme.text,
+      border: `2px solid ${theme.border}`,
+      display: 'inline-block'
+    };
+  };
+
+  const thStyle = {
+    padding: '30px 25px',
+    background: '#000000',
+    color: '#ffffff',
+    fontSize: '14px',
+    fontWeight: 900,
+    textTransform: 'uppercase',
+    letterSpacing: '0.1em',
+  };
+
   return (
-    <section className="tickets-section" style={{ background: 'white', padding: '40px', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', border: '1px solid #f1f5f9' }}>
-      <div className="section-header" style={{ marginBottom: '30px' }}>
+    <section className="tickets-section" style={{ background: '#f8fafc', padding: '40px', borderRadius: '32px', fontFamily: "'Inter', sans-serif" }}>
+      <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
         <div>
-          <h2 style={{ fontSize: '38px', fontWeight: 800, color: '#1e293b' }}>Support Ticket Intelligence</h2>
-          <p style={{ color: '#64748b', fontSize: '24px', marginTop: '6px' }}>Real-time analysis and triage for all incoming requests.</p>
+          <h2 style={{ fontSize: '48px', fontWeight: 900, color: '#000000', marginBottom: '12px', letterSpacing: '-0.04em' }}>Support Ticket Intelligence</h2>
+          <p style={{ color: '#1e293b', fontSize: '22px', fontWeight: 600, opacity: 0.8 }}>Real-time analysis and triage for all incoming requests.</p>
         </div>
         <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-          <div className="search-box-premium-light" style={{ position: 'relative', display: 'flex', alignItems: 'center', background: '#f8fafc', borderRadius: '12px', padding: '0 16px', border: '1px solid #e2e8f0', width: '400px' }}>
-            <span style={{ marginRight: '10px', fontSize: '24px' }}>🔍</span>
+          <div style={{ background: '#ffffff', padding: '10px', borderRadius: '20px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.05)' }}>
+            <span style={{ marginLeft: '12px', fontSize: '20px' }}>🔍</span>
             <input
               type="text"
               placeholder="Filter tickets..."
-              style={{ background: 'transparent', border: 'none', padding: '16px 0', fontSize: '24px', width: '100%', outline: 'none', color: '#1e293b' }}
+              style={{ border: 'none', padding: '10px 0', fontSize: '18px', width: '250px', outline: 'none', color: '#1e293b', fontWeight: 600 }}
               value={search}
               onChange={e => setSearch(e.target.value)}
             />
           </div>
           <button 
-            className="btn-clear-all" 
             onClick={() => refreshData()}
-            style={{ background: 'white', border: '1px solid #e2e8f0', padding: '14px 20px', borderRadius: '10px', fontSize: '24px', fontWeight: 600, cursor: 'pointer', color: '#64748b' }}
+            style={{ 
+              background: '#3b82f6', 
+              color: '#ffffff', 
+              padding: '16px 28px', 
+              borderRadius: '14px', 
+              border: 'none', 
+              fontSize: '16px', 
+              fontWeight: 800, 
+              cursor: 'pointer',
+              boxShadow: '0 8px 20px rgba(59, 130, 246, 0.3)',
+              transition: 'all 0.3s ease'
+            }}
           >
             🔄 Refresh
           </button>
         </div>
       </div>
 
-      <div className="table-container" style={{ overflowX: 'auto' }}>
-        <table className="tickets-table-light" style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 8px' }}>
+      <div className="records-card" style={{ 
+        background: '#ffffff', 
+        borderRadius: '32px', 
+        border: '2px solid #000000', 
+        boxShadow: '0 40px 80px -20px rgba(0,0,0,0.15)', 
+        overflow: 'hidden' 
+      }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead>
-            <tr style={{ textAlign: 'left', color: '#445164', fontSize: '24px', fontWeight: 700 }}>
-              <th style={{ padding: '16px 20px' }}>ID</th>
-              <th style={{ padding: '12px 20px' }}>Company</th>
-              <th style={{ padding: '12px 20px' }}>Problem</th>
-              <th style={{ padding: '12px 20px' }}>Category</th>
-              <th style={{ padding: '12px 20px' }}>Severity</th>
-              <th style={{ padding: '12px 20px' }}>AI Confidence</th>
-              <th style={{ padding: '12px 20px' }}>Status</th>
-              <th style={{ padding: '12px 20px', textAlign: 'right' }}>Actions</th>
+            <tr>
+              <th style={{ ...thStyle, width: '80px' }}>ID</th>
+              <th style={{ ...thStyle, width: '250px' }}>Company</th>
+              <th style={{ ...thStyle }}>Problem Summary (AI)</th>
+              <th style={{ ...thStyle, width: '150px' }}>Severity</th>
+              <th style={{ ...thStyle, width: '120px' }}>Confidence</th>
+              <th style={{ ...thStyle, width: '180px' }}>Status</th>
+              <th style={{ ...thStyle, width: '100px', textAlign: 'right' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {displayed.length === 0 ? (
               <tr>
-                <td colSpan={8} style={{ textAlign: 'center', padding: '60px', color: '#64748b' }}>
+                <td colSpan={7} style={{ textAlign: 'center', padding: '100px', color: '#64748b', fontSize: '20px' }}>
                   {query ? `No matching tickets found for "${query}"` : "No tickets pending review."}
                 </td>
               </tr>
             ) : displayed.map(t => {
               const customerName = t.company_name || 'Royal VIVBuisman'
-              const category = t.issue_category || 'Other'
               const severity = (t.severity || 'Medium').toLowerCase()
               const status = t.status || 'analyzed'
-              const catColor = CAT_COLORS[category] || CAT_COLORS['Other']
               
               return (
                 <tr 
                   key={t.id} 
                   onClick={() => onShowTicket(t.id)} 
-                  style={{ cursor: 'pointer', background: 'white', transition: 'var(--transition)' }}
-                  className="ticket-row-light"
+                  style={{ borderBottom: '1px solid #e2e8f0', transition: 'all 0.2s ease', cursor: 'pointer' }}
+                  onMouseOver={(e) => e.currentTarget.style.background = '#f8fafc'}
+                  onMouseOut={(e) => e.currentTarget.style.background = 'white'}
                 >
-                  <td style={{ padding: '24px 20px', borderTop: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9', borderLeft: '1px solid #f1f5f9', borderRadius: '12px 0 0 12px', fontWeight: 800, color: '#668f45', fontSize: '24px' }}>#{t.id}</td>
-                  <td style={{ padding: '24px 20px', borderTop: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9' }}>
+                  <td style={{ padding: '30px 25px', color: '#64748b', fontWeight: 800, fontSize: '18px' }}>#{t.id}</td>
+                  <td style={{ padding: '30px 25px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                       <img
                         src={`https://ui-avatars.com/api/?name=${encodeURIComponent(customerName)}&background=f1f5f9&color=668f45&bold=true`}
                         alt=""
-                        style={{ width: '42px', height: '42px', borderRadius: '10px' }}
+                        style={{ width: '52px', height: '52px', borderRadius: '12px' }}
                       />
-                      <span style={{ fontWeight: 700, color: '#1e293b', fontSize: '24px' }} dangerouslySetInnerHTML={{ __html: highlight(customerName, query) }} />
+                      <span style={{ fontWeight: 900, color: '#000000', fontSize: '24px' }} dangerouslySetInnerHTML={{ __html: highlight(customerName, query) }} />
                     </div>
                   </td>
-                  <td style={{ padding: '24px 20px', borderTop: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9', maxWidth: '350px' }}>
-                    <span style={{ color: '#1e293b', fontSize: '24px', fontWeight: 500, lineHeight: '1.6' }} dangerouslySetInnerHTML={{ __html: highlight(t.problem_summary, query) }} />
+                  <td style={{ padding: '30px 25px', background: '#f0f9ff', borderLeft: '2px solid #e2e8f0' }}>
+                    <span style={{ color: '#000000', fontSize: '24px', fontWeight: 900, lineHeight: '1.5' }} dangerouslySetInnerHTML={{ __html: highlight(t.problem_summary, query) }} />
                   </td>
-                  <td style={{ padding: '24px 20px', borderTop: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9' }}>
-                    <span style={{ padding: '8px 14px', borderRadius: '8px', background: `${catColor}15`, color: catColor, fontSize: '22px', fontWeight: 700 }}>
-                      {category}
+                  <td style={{ padding: '30px 25px', borderLeft: '1px solid #e2e8f0' }}>
+                    <span className={`severity-badge-${severity}`} style={{ fontSize: '18px', fontWeight: 800, textTransform: 'uppercase' }}>
+                      {severity.toUpperCase()}
                     </span>
                   </td>
-                  <td style={{ padding: '24px 20px', borderTop: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9' }}>
-                    <span className={`severity-badge-${severity}`} style={{ fontSize: '21px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                      {severity}
-                    </span>
-                  </td>
-                  <td style={{ padding: '24px 20px', borderTop: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9' }}>
+                  <td style={{ padding: '30px 25px', borderLeft: '1px solid #e2e8f0' }}>
                     <div style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '8px 12px',
-                      background: t.confidence_score >= 80 ? 'rgba(102, 143, 69, 0.1)' : (t.confidence_score >= 60 ? 'rgba(245, 158, 11, 0.1)' : 'rgba(239, 68, 68, 0.1)'),
-                      color: t.confidence_score >= 80 ? '#668f45' : (t.confidence_score >= 60 ? '#f59e0b' : '#ef4444'),
-                      borderRadius: '8px',
-                      fontWeight: 800,
-                      fontSize: '22px'
+                      padding: '10px 15px',
+                      borderRadius: '10px',
+                      background: t.confidence_score >= 80 ? '#059669' : (t.confidence_score >= 60 ? '#d97706' : '#dc2626'),
+                      color: '#fff',
+                      fontWeight: 900,
+                      fontSize: '15px',
+                      textAlign: 'center',
+                      display: 'inline-block',
+                      minWidth: '60px'
                     }}>
-                      <span style={{ fontSize: '18px' }}>{t.confidence_score >= 80 ? '🛡️' : (t.confidence_score >= 60 ? '⚠️' : '🚨')}</span>
                       {Math.round(t.confidence_score || 0)}%
                     </div>
                   </td>
-                  <td style={{ padding: '24px 20px', borderTop: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9' }}>
-                    <span style={{
-                      color: status === 'pending_review' ? '#ef4444' : '#445164',
-                      fontSize: '23px',
-                      fontWeight: 700
-                    }}>{status.replace(/_/g, ' ')}</span>
+                  <td style={{ padding: '30px 25px', borderLeft: '1px solid #e2e8f0' }}>
+                    <span style={statusBadgeStyle(status)}>
+                      {status.replace(/_/g, ' ')}
+                    </span>
                   </td>
-                  <td style={{ padding: '24px 20px', borderTop: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9', borderRight: '1px solid #f1f5f9', borderRadius: '0 12px 12px 0', textAlign: 'right' }}>
+                  <td style={{ padding: '30px 25px', borderLeft: '1px solid #e2e8f0', textAlign: 'right' }}>
                     <button
                       onClick={(e) => handleDelete(e, t.id)}
-                      style={{ background: 'transparent', border: 'none', color: '#cbd5e1', cursor: 'pointer', fontSize: '30px', padding: '4px' }}
+                      style={{ background: 'transparent', border: 'none', color: '#cbd5e1', cursor: 'pointer', fontSize: '24px', transition: 'all 0.2s ease' }}
+                      onMouseOver={(e) => e.currentTarget.style.color = '#ef4444'}
+                      onMouseOut={(e) => e.currentTarget.style.color = '#cbd5e1'}
                     >
                       🗑️
                     </button>
