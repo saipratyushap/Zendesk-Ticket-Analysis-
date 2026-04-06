@@ -102,8 +102,6 @@ export default function App() {
         <main id="database-view" className={`page${activePage === 'database-view' ? ' active' : ''}`}>
           <DatabaseView isActive={activePage === 'database-view'} />
         </main>
-        
-
       </div>
 
 

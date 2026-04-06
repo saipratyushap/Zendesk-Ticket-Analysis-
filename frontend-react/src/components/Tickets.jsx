@@ -51,9 +51,9 @@ export default function Tickets({ tickets, onShowTicket, showToast, refreshData 
     };
     const theme = colors[status] || colors.open;
     return {
-      padding: '10px 20px',
-      borderRadius: '12px',
-      fontSize: '13px',
+      padding: '8px 16px',
+      borderRadius: '10px',
+      fontSize: '15px',
       fontWeight: 900,
       textTransform: 'uppercase',
       background: theme.bg,
@@ -64,10 +64,10 @@ export default function Tickets({ tickets, onShowTicket, showToast, refreshData 
   };
 
   const thStyle = {
-    padding: '30px 25px',
+    padding: '14px 18px',
     background: '#000000',
     color: '#ffffff',
-    fontSize: '14px',
+    fontSize: '16px',
     fontWeight: 900,
     textTransform: 'uppercase',
     letterSpacing: '0.1em',
@@ -77,8 +77,8 @@ export default function Tickets({ tickets, onShowTicket, showToast, refreshData 
     <section className="tickets-section" style={{ background: '#f8fafc', padding: '40px', borderRadius: '32px', fontFamily: "'Inter', sans-serif" }}>
       <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
         <div>
-          <h2 style={{ fontSize: '48px', fontWeight: 900, color: '#000000', marginBottom: '12px', letterSpacing: '-0.04em' }}>Support Ticket Intelligence</h2>
-          <p style={{ color: '#1e293b', fontSize: '22px', fontWeight: 600, opacity: 0.8 }}>Real-time analysis and triage for all incoming requests.</p>
+          <h2 style={{ fontSize: '42px', fontWeight: 900, color: '#000000', marginBottom: '12px', letterSpacing: '-0.04em' }}>Support Ticket Intelligence</h2>
+          <p style={{ color: '#1e293b', fontSize: '20px', fontWeight: 600, opacity: 0.8 }}>Real-time analysis and triage for all incoming requests.</p>
         </div>
         <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
           <div style={{ background: '#ffffff', padding: '10px', borderRadius: '20px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.05)' }}>
@@ -86,7 +86,7 @@ export default function Tickets({ tickets, onShowTicket, showToast, refreshData 
             <input
               type="text"
               placeholder="Filter tickets..."
-              style={{ border: 'none', padding: '10px 0', fontSize: '18px', width: '250px', outline: 'none', color: '#1e293b', fontWeight: 600 }}
+              style={{ border: 'none', padding: '8px 0', fontSize: '16px', width: '250px', outline: 'none', color: '#1e293b', fontWeight: 600 }}
               value={search}
               onChange={e => setSearch(e.target.value)}
             />
@@ -96,7 +96,7 @@ export default function Tickets({ tickets, onShowTicket, showToast, refreshData 
             style={{ 
               background: '#3b82f6', 
               color: '#ffffff', 
-              padding: '16px 28px', 
+              padding: '12px 24px', 
               borderRadius: '14px', 
               border: 'none', 
               fontSize: '16px', 
@@ -150,33 +150,33 @@ export default function Tickets({ tickets, onShowTicket, showToast, refreshData 
                   onMouseOver={(e) => e.currentTarget.style.background = '#f8fafc'}
                   onMouseOut={(e) => e.currentTarget.style.background = 'white'}
                 >
-                  <td style={{ padding: '30px 25px', color: '#64748b', fontWeight: 800, fontSize: '18px' }}>#{t.id}</td>
-                  <td style={{ padding: '30px 25px' }}>
+                  <td style={{ padding: '16px 20px', color: '#64748b', fontWeight: 800, fontSize: '18px' }}>#{t.id}</td>
+                  <td style={{ padding: '16px 20px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                       <img
                         src={`https://ui-avatars.com/api/?name=${encodeURIComponent(customerName)}&background=f1f5f9&color=668f45&bold=true`}
                         alt=""
-                        style={{ width: '52px', height: '52px', borderRadius: '12px' }}
+                        style={{ width: '45px', height: '45px', borderRadius: '10px' }}
                       />
-                      <span style={{ fontWeight: 900, color: '#000000', fontSize: '24px' }} dangerouslySetInnerHTML={{ __html: highlight(customerName, query) }} />
+                      <span style={{ fontWeight: 900, color: '#000000', fontSize: '18px' }} dangerouslySetInnerHTML={{ __html: highlight(customerName, query) }} />
                     </div>
                   </td>
-                  <td style={{ padding: '30px 25px', background: '#f0f9ff', borderLeft: '2px solid #e2e8f0' }}>
-                    <span style={{ color: '#000000', fontSize: '24px', fontWeight: 900, lineHeight: '1.5' }} dangerouslySetInnerHTML={{ __html: highlight(t.problem_summary, query) }} />
+                  <td style={{ padding: '16px 20px', background: '#f0f9ff', borderLeft: '2px solid #e2e8f0' }}>
+                    <span style={{ color: '#000000', fontSize: '17px', fontWeight: 900, lineHeight: '1.5' }} dangerouslySetInnerHTML={{ __html: highlight(t.problem_summary, query) }} />
                   </td>
-                  <td style={{ padding: '30px 25px', borderLeft: '1px solid #e2e8f0' }}>
-                    <span className={`severity-badge-${severity}`} style={{ fontSize: '18px', fontWeight: 800, textTransform: 'uppercase' }}>
+                  <td style={{ padding: '16px 20px', borderLeft: '1px solid #e2e8f0' }}>
+                    <span className={`severity-badge-${severity}`} style={{ fontSize: '17px', fontWeight: 800, textTransform: 'uppercase' }}>
                       {severity.toUpperCase()}
                     </span>
                   </td>
-                  <td style={{ padding: '30px 25px', borderLeft: '1px solid #e2e8f0' }}>
+                  <td style={{ padding: '16px 20px', borderLeft: '1px solid #e2e8f0' }}>
                     <div style={{
-                      padding: '10px 15px',
+                      padding: '10px 14px',
                       borderRadius: '10px',
                       background: t.confidence_score >= 80 ? '#059669' : (t.confidence_score >= 60 ? '#d97706' : '#dc2626'),
                       color: '#fff',
                       fontWeight: 900,
-                      fontSize: '15px',
+                      fontSize: '16px',
                       textAlign: 'center',
                       display: 'inline-block',
                       minWidth: '60px'
@@ -184,12 +184,12 @@ export default function Tickets({ tickets, onShowTicket, showToast, refreshData 
                       {Math.round(t.confidence_score || 0)}%
                     </div>
                   </td>
-                  <td style={{ padding: '30px 25px', borderLeft: '1px solid #e2e8f0' }}>
+                  <td style={{ padding: '16px 20px', borderLeft: '1px solid #e2e8f0' }}>
                     <span style={statusBadgeStyle(status)}>
                       {status.replace(/_/g, ' ')}
                     </span>
                   </td>
-                  <td style={{ padding: '30px 25px', borderLeft: '1px solid #e2e8f0', textAlign: 'right' }}>
+                  <td style={{ padding: '16px 20px', borderLeft: '1px solid #e2e8f0', textAlign: 'right' }}>
                     <button
                       onClick={(e) => handleDelete(e, t.id)}
                       style={{ background: 'transparent', border: 'none', color: '#cbd5e1', cursor: 'pointer', fontSize: '24px', transition: 'all 0.2s ease' }}

@@ -3,11 +3,11 @@ import { getDatabaseView, clearTickets, seedTickets, closeTicket } from '../api'
 
 // Premium Styling Tokens (copied from Tickets.jsx for consistency)
 const thStyle = {
-  padding: '30px 25px',
+  padding: '14px 18px',
   background: '#000000',
   color: '#ffffff',
-  fontSize: '14px',
-  fontWeight: 900,
+  fontSize: '16px',
+  fontWeight: 700,
   textTransform: 'uppercase',
   letterSpacing: '0.1em',
 };
@@ -22,14 +22,14 @@ const statusBadgeStyleRaw = (status) => {
   };
   const theme = colors[status] || colors.OPEN;
   return {
-    padding: '10px 20px',
-    borderRadius: '12px',
-    fontSize: '13px',
-    fontWeight: 900,
+    padding: '8px 16px',
+    borderRadius: '10px',
+    fontSize: '15px',
+    fontWeight: 800,
     textTransform: 'uppercase',
     background: theme.bg,
     color: theme.text,
-    border: `2px solid ${theme.border}`,
+    border: `1px solid ${theme.border}`,
     display: 'inline-block',
     whiteSpace: 'nowrap'
   };
@@ -38,6 +38,7 @@ const statusBadgeStyleRaw = (status) => {
 const DatabaseView = ({ isActive }) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [isSimulationActive, setIsSimulationActive] = useState(false);
   const [isSeeding, setIsSeeding] = useState(false);
   const [showAiColumns, setShowAiColumns] = useState(false);
 
@@ -60,6 +61,7 @@ const DatabaseView = ({ isActive }) => {
     try {
       await clearTickets();
       setData([]);
+      setIsSimulationActive(false);
       setShowAiColumns(false);
     } catch (err) {
       alert('Failed to clear');
@@ -70,6 +72,7 @@ const DatabaseView = ({ isActive }) => {
     setIsSeeding(true);
     try {
       await seedTickets();
+      setIsSimulationActive(true);
       setShowAiColumns(false);
       await fetchData();
     } catch (err) {
@@ -90,12 +93,12 @@ const DatabaseView = ({ isActive }) => {
   };
 
   useEffect(() => {
-    if (isActive) {
+    if (isActive && isSimulationActive) {
       fetchData();
       const interval = setInterval(fetchData, 8000);
       return () => clearInterval(interval);
     }
-  }, [isActive]);
+  }, [isActive, isSimulationActive]);
 
   return (
     <div className="database-view-container" style={containerStyle}>
@@ -121,9 +124,9 @@ const DatabaseView = ({ isActive }) => {
       <div className="records-card" style={tableWrapperStyle}>
         {data.length === 0 ? (
           <div style={emptyStyle}>
-            <span style={{ fontSize: '48px' }}>🔍</span>
-            <h2 style={{ color: '#64748b' }}>No Data Populated</h2>
-            <p>Click "Repopulate Sample Data" to start the simulation.</p>
+            <span style={{ fontSize: '36px' }}>🔍</span>
+            <h2 style={{ color: '#64748b', fontSize: '20px' }}>No Data Populated</h2>
+            <p style={{ fontSize: '14px' }}>Click "Repopulate Sample Data" to start the simulation.</p>
           </div>
         ) : (
           <table style={tableStyle}>
@@ -143,7 +146,7 @@ const DatabaseView = ({ isActive }) => {
                     <th style={{ ...thStyle, width: '200px' }}>Status</th>
                   </>
                 )}
-                <th style={{ ...thStyle, width: '120px', textAlign: 'right' }}>Action</th>
+                <th style={{ ...thStyle, width: '120px', textAlign: 'right', fontSize: '11px' }}>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -154,19 +157,19 @@ const DatabaseView = ({ isActive }) => {
 
                 return (
                   <tr key={row.id} style={trStyle} onMouseOver={(e) => e.currentTarget.style.background = '#f8fafc'} onMouseOut={(e) => e.currentTarget.style.background = 'white'}>
-                    <td style={{ padding: '30px 25px', color: '#64748b', fontWeight: 800, fontSize: '18px' }}>#{row.id}</td>
-                    <td style={{ padding: '30px 25px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <td style={{ padding: '16px 20px', color: '#64748b', fontWeight: 800, fontSize: '18px' }}>#{row.id}</td>
+                    <td style={{ padding: '16px 20px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <img
                           src={`https://ui-avatars.com/api/?name=${encodeURIComponent(customerName)}&background=f1f5f9&color=668f45&bold=true`}
                           alt=""
-                          style={{ width: '52px', height: '52px', borderRadius: '12px' }}
+                          style={{ width: '45px', height: '45px', borderRadius: '10px' }}
                         />
-                        <span style={{ fontWeight: 900, color: '#000000', fontSize: '24px' }}>{customerName}</span>
+                        <span style={{ fontWeight: 800, color: '#000000', fontSize: '18px' }}>{customerName}</span>
                       </div>
                     </td>
-                    <td style={{ padding: '30px 25px', background: row.problem_summary ? '#f0f9ff' : 'transparent', borderLeft: '2px solid #e2e8f0' }}>
-                      <span style={{ color: '#000000', fontSize: '20px', fontWeight: 900, lineHeight: '1.6', display: 'block' }}>
+                    <td style={{ padding: '16px 20px', background: row.problem_summary ? '#f0f9ff' : 'transparent', borderLeft: '1px solid #e2e8f0' }}>
+                      <span style={{ color: '#000000', fontSize: '17px', fontWeight: 700, lineHeight: '1.5', display: 'block' }}>
                         {row.problem_summary || row.Description || 'Pending Processing...'}
                       </span>
                     </td>
@@ -181,19 +184,19 @@ const DatabaseView = ({ isActive }) => {
 
                     {showAiColumns && (
                       <>
-                        <td style={{ padding: '30px 25px', borderLeft: '1px solid #e2e8f0' }}>
-                          <div style={{ color: '#000000', fontSize: '20px', fontWeight: 900, lineHeight: '1.6' }}>
+                        <td style={{ padding: '16px 20px', borderLeft: '1px solid #e2e8f0' }}>
+                          <div style={{ color: '#000000', fontSize: '17px', fontWeight: 700, lineHeight: '1.5' }}>
                             {row.solution_summary || '—'}
                           </div>
                         </td>
-                        <td style={{ padding: '30px 25px', borderLeft: '1px solid #e2e8f0' }}>
-                          <div style={{ color: '#000000', fontSize: '20px', fontWeight: 900, lineHeight: '1.6', fontStyle: 'normal' }}>
+                        <td style={{ padding: '16px 20px', borderLeft: '1px solid #e2e8f0' }}>
+                          <div style={{ color: '#000000', fontSize: '17px', fontWeight: 700, lineHeight: '1.5', fontStyle: 'normal' }}>
                             {row.root_cause || '—'}
                           </div>
                         </td>
-                        <td style={{ padding: '30px 25px', borderLeft: '1px solid #e2e8f0' }}>
+                        <td style={{ padding: '16px 20px', borderLeft: '1px solid #e2e8f0' }}>
                           <span style={{ 
-                            fontSize: '15px', 
+                            fontSize: '16px', 
                             fontWeight: 800, 
                             color: '#4f46e5',
                             textTransform: 'uppercase'
@@ -201,9 +204,9 @@ const DatabaseView = ({ isActive }) => {
                             {row.issue_category || '—'}
                           </span>
                         </td>
-                        <td style={{ padding: '30px 25px', borderLeft: '1px solid #e2e8f0' }}>
+                        <td style={{ padding: '16px 20px', borderLeft: '1px solid #e2e8f0' }}>
                           <span style={{ 
-                            fontSize: '18px', 
+                            fontSize: '17px', 
                             fontWeight: 800, 
                             textTransform: 'uppercase',
                             color: severity === 'critical' ? '#dc2626' : (severity === 'high' ? '#ea580c' : '#64748b')
@@ -211,14 +214,14 @@ const DatabaseView = ({ isActive }) => {
                             {severity}
                           </span>
                         </td>
-                        <td style={{ padding: '30px 25px', borderLeft: '1px solid #e2e8f0' }}>
+                        <td style={{ padding: '16px 20px', borderLeft: '1px solid #e2e8f0' }}>
                           <div style={{
-                            padding: '10px 15px',
+                            padding: '10px 14px',
                             borderRadius: '10px',
                             background: confidence >= 80 ? '#059669' : (confidence >= 60 ? '#d97706' : '#dc2626'),
                             color: '#fff',
                             fontWeight: 900,
-                            fontSize: '15px',
+                            fontSize: '16px',
                             textAlign: 'center',
                             display: 'inline-block',
                             minWidth: '60px'
@@ -226,7 +229,7 @@ const DatabaseView = ({ isActive }) => {
                             {confidence}%
                           </div>
                         </td>
-                        <td style={{ padding: '30px 25px', borderLeft: '1px solid #e2e8f0' }}>
+                        <td style={{ padding: '16px 20px', borderLeft: '1px solid #e2e8f0' }}>
                           <span style={statusBadgeStyleRaw(row.status === 'pending_review' ? 'CLOSED' : row.status)}>
                             {(row.status === 'pending_review' ? 'CLOSED' : row.status).replace(/_/g, ' ')}
                           </span>
@@ -234,14 +237,14 @@ const DatabaseView = ({ isActive }) => {
                       </>
                     )}
 
-                    <td style={{ padding: '30px 25px', borderLeft: '1px solid #e2e8f0', textAlign: 'right' }}>
+                    <td style={{ padding: '16px 20px', borderLeft: '1px solid #e2e8f0', textAlign: 'right' }}>
                       {row.status === 'OPEN' && (
                         <button onClick={() => handleClose(row.id)} style={closeButtonStyle}>
                           🔒 Close Ticket
                         </button>
                       )}
                       {(row.status === 'CLOSED' || row.status === 'pending_review') && (
-                        <span style={{ color: '#059669', fontWeight: 900, fontSize: '14px', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+                        <span style={{ color: '#059669', fontWeight: 900, fontSize: '17px', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
                           ✅ PROCESSED
                         </span>
                       )}
@@ -263,29 +266,29 @@ const DatabaseView = ({ isActive }) => {
 };
 
 // Layout Styles
-const containerStyle = { padding: '40px', background: '#f8fafc', minHeight: '100vh', fontFamily: "'Inter', sans-serif" };
-const headerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' };
-const titleStyle = { fontSize: '48px', fontWeight: 900, color: '#000000', marginBottom: '12px', letterSpacing: '-0.04em' };
+const containerStyle = { padding: '24px', background: '#f8fafc', minHeight: '100vh', fontFamily: "'Inter', sans-serif" };
+const headerStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' };
+const titleStyle = { fontSize: '42px', fontWeight: 900, color: '#000000', marginBottom: '8px', letterSpacing: '-0.04em' };
 const subtitleStyle = { color: '#1e293b', fontSize: '22px', fontWeight: 600, opacity: 0.8 };
 const actionContainerStyle = { display: 'flex', gap: '16px', alignItems: 'center' };
 const actionButtonStyle = { 
   background: '#3b82f6', 
   color: '#ffffff', 
-  padding: '16px 28px', 
-  borderRadius: '14px', 
+  padding: '12px 24px', 
+  borderRadius: '12px', 
   border: 'none', 
   fontSize: '16px', 
   fontWeight: 800, 
   cursor: 'pointer',
-  boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
+  boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
   transition: 'all 0.3s ease'
 };
 
 const tableWrapperStyle = { 
   background: '#ffffff', 
-  borderRadius: '32px', 
+  borderRadius: '24px', 
   border: '2px solid #000000', 
-  boxShadow: '0 40px 80px -20px rgba(0,0,0,0.15)', 
+  boxShadow: '0 20px 40px -10px rgba(0,0,0,0.1)', 
   overflow: 'hidden' 
 };
 
@@ -296,10 +299,10 @@ const emptyStyle = { padding: '100px', textAlign: 'center' };
 const closeButtonStyle = {
   background: '#000000',
   color: '#ffffff',
-  padding: '12px 24px',
-  borderRadius: '12px',
+  padding: '8px 16px',
+  borderRadius: '8px',
   border: 'none',
-  fontSize: '14px',
+  fontSize: '12px',
   fontWeight: 900,
   textTransform: 'uppercase',
   cursor: 'pointer',

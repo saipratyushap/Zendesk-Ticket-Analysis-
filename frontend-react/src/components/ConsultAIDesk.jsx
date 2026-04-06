@@ -29,8 +29,8 @@ export default function ConsultAIDesk({ showToast }) {
 
   return (
     <section className="consult-ai-section" style={{ 
-      padding: '60px 40px', 
-      maxWidth: '1400px', 
+      padding: '40px 24px', 
+      maxWidth: '1300px', 
       margin: '0 auto',
       minHeight: '100vh',
       position: 'relative',
@@ -41,19 +41,19 @@ export default function ConsultAIDesk({ showToast }) {
       <div style={{ position: 'absolute', top: '-10%', right: '-5%', width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(102, 143, 69, 0.15) 0%, transparent 70%)', filter: 'blur(60px)', zIndex: -1 }}></div>
       <div style={{ position: 'absolute', bottom: '10%', left: '-5%', width: '500px', height: '500px', background: 'radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%)', filter: 'blur(80px)', zIndex: -1 }}></div>
 
-      <div className="section-header" style={{ marginBottom: '60px', textAlign: 'center' }}>
+      <div className="section-header" style={{ marginBottom: '40px', textAlign: 'center' }}>
         <h2 style={{ 
-          fontSize: '64px', 
+          fontSize: '42px', 
           fontWeight: 950, 
-          letterSpacing: '-2px',
+          letterSpacing: '-1px',
           background: 'linear-gradient(135deg, #1e293b 0%, #668f45 50%, #3b82f6 100%)', 
           WebkitBackgroundClip: 'text', 
           WebkitTextFillColor: 'transparent', 
-          marginBottom: '20px' 
+          marginBottom: '10px' 
         }}>
           Consult AI Desk
         </h2>
-        <p style={{ fontSize: '26px', color: '#64748b', maxWidth: '900px', margin: '0 auto', lineHeight: '1.5', fontWeight: 500 }}>
+        <p style={{ fontSize: '18px', color: '#64748b', maxWidth: '800px', margin: '0 auto', lineHeight: '1.5', fontWeight: 500 }}>
           Experience the future of support. Harness the deep intelligence of the <span style={{ color: '#668f45', fontWeight: 800 }}>Gemini Support Engine</span> to parse complex problems in seconds.
         </p>
       </div>
@@ -69,9 +69,9 @@ export default function ConsultAIDesk({ showToast }) {
         <div style={{ 
           background: 'rgba(255, 255, 255, 0.8)', 
           backdropFilter: 'blur(20px)',
-          padding: '50px', 
-          borderRadius: '40px', 
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.08)', 
+          padding: '40px', 
+          borderRadius: '32px', 
+          boxShadow: '0 15px 40px rgba(0, 0, 0, 0.06)', 
           border: '1px solid rgba(255, 255, 255, 0.7)',
           position: 'relative',
           overflow: 'hidden'
@@ -113,7 +113,7 @@ export default function ConsultAIDesk({ showToast }) {
             >
               <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px' }}>
                 {loading ? 'Analyzing Neural Patterns...' : 'Invoke Intelligence Engine'}
-                {!loading && <span style={{ fontSize: '32px' }}>✨</span>}
+              {!loading && <span style={{ fontSize: '24px' }}>✨</span>}
               </span>
             </button>
           </form>
@@ -138,14 +138,14 @@ export default function ConsultAIDesk({ showToast }) {
               animation: 'slideInRight 0.6s cubic-bezier(0.16, 1, 0.3, 1)'
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
-                <h3 style={{ fontSize: '34px', fontWeight: 900, color: '#1e293b' }}>Intelligence Report</h3>
+                <h3 style={{ fontSize: '28px', fontWeight: 900, color: '#1e293b' }}>Intelligence Report</h3>
                 <div style={{ 
                   background: 'rgba(102, 143, 69, 0.1)', 
                   color: '#668f45', 
                   padding: '10px 20px', 
                   borderRadius: '100px', 
                   fontWeight: 800, 
-                  fontSize: '18px',
+                  fontSize: '16px',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px'
@@ -176,15 +176,15 @@ export default function ConsultAIDesk({ showToast }) {
                 <div style={{ marginBottom: '40px' }}>
                   <h4 style={subLabelStyle}>Recommended Resolution</h4>
                   <div style={{ 
-                    padding: '30px', 
-                    borderRadius: '24px', 
+                    padding: '24px', 
+                    borderRadius: '16px', 
                     background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)', 
-                    borderLeft: '6px solid #668f45',
-                    fontSize: '22px',
-                    lineHeight: '1.7',
+                    borderLeft: '5px solid #668f45',
+                    fontSize: '17px',
+                    lineHeight: '1.6',
                     color: '#334155',
                     fontWeight: 500,
-                    boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)'
+                    boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.02)'
                   }}>
                     {result.solution_summary}
                   </div>
@@ -261,36 +261,36 @@ function ReportTag({ bg, color, label, value }) {
       flexDirection: 'column',
       gap: '4px'
     }}>
-      <span style={{ fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', color: color, opacity: 0.6 }}>{label}</span>
-      <span style={{ fontSize: '19px', fontWeight: 800, color: color }}>{value}</span>
+      <span style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', color: color, opacity: 0.6 }}>{label}</span>
+      <span style={{ fontSize: '17px', fontWeight: 800, color: color }}>{value}</span>
     </div>
   )
 }
 
 const labelHeaderStyle = {
   display: 'block',
-  fontSize: '32px',
+  fontSize: '24px',
   fontWeight: 950,
   color: '#000000',
-  marginBottom: '20px',
+  marginBottom: '15px',
   letterSpacing: '-1px'
 }
 
 const inputStyle = (isArea) => ({
   width: '100%', 
-  height: isArea ? '320px' : '85px', 
-  borderRadius: '24px', 
-  border: '3px solid #e2e8f0', 
-  padding: '30px', 
-  fontSize: '26px', 
+  height: isArea ? '260px' : '72px', 
+  borderRadius: '18px', 
+  border: '2px solid #e2e8f0', 
+  padding: '20px', 
+  fontSize: '18px', 
   fontFamily: 'inherit',
   outline: 'none',
   transition: 'all 0.3s',
   background: '#ffffff',
   color: '#000000',
-  fontWeight: 800,
+  fontWeight: 600,
   resize: 'none',
-  boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)'
+  boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.02)'
 })
 
 const modeButtonStyle = (active) => ({
@@ -310,28 +310,28 @@ const modeButtonStyle = (active) => ({
 
 const submitButtonStyle = (loading) => ({
   width: '100%',
-  padding: '28px',
-  borderRadius: '24px',
+  padding: '20px',
+  borderRadius: '18px',
   background: loading ? '#94a3b8' : 'linear-gradient(135deg, #668f45 0%, #4d7a2f 100%)',
   color: 'white',
-  fontSize: '26px',
+  fontSize: '20px',
   fontWeight: 800,
   border: 'none',
   cursor: loading ? 'not-allowed' : 'pointer',
-  boxShadow: '0 15px 30px rgba(102, 143, 69, 0.25)'
+  boxShadow: '0 10px 25px rgba(102, 143, 69, 0.22)'
 })
 
 const subLabelStyle = {
-  fontSize: '15px',
+  fontSize: '13px',
   fontWeight: 800,
   textTransform: 'uppercase',
   color: '#94a3b8',
-  letterSpacing: '1.5px',
-  marginBottom: '12px'
+  letterSpacing: '1px',
+  marginBottom: '10px'
 }
 
 const paragraphStyle = {
-  fontSize: '22px',
+  fontSize: '18px',
   lineHeight: '1.6',
   color: '#475569',
   fontWeight: 500
@@ -339,11 +339,11 @@ const paragraphStyle = {
 
 const secondaryButtonStyle = {
   flex: 1,
-  padding: '20px',
-  borderRadius: '18px',
+  padding: '16px',
+  borderRadius: '14px',
   background: '#f1f5f9',
   border: 'none',
-  fontSize: '18px',
+  fontSize: '16px',
   fontWeight: 700,
   color: '#475569',
   cursor: 'pointer',
@@ -352,11 +352,11 @@ const secondaryButtonStyle = {
 
 const primaryActionStyle = {
   flex: 2,
-  padding: '20px',
-  borderRadius: '18px',
+  padding: '16px',
+  borderRadius: '14px',
   background: '#1e293b',
   border: 'none',
-  fontSize: '18px',
+  fontSize: '16px',
   fontWeight: 700,
   color: 'white',
   cursor: 'pointer',

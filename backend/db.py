@@ -245,6 +245,15 @@ def init_db() -> None:
         conn.commit()
         print('Connected to SQLite database')
 
+        # Ensure tickets table is empty on startup for fresh simulation
+        try:
+            conn.execute("DELETE FROM tickets")
+            conn.execute("DELETE FROM sqlite_sequence WHERE name='tickets'")
+            conn.commit()
+            print('Tickets table cleared for fresh simulation ✅')
+        except Exception:
+            pass
+
         for col, coltype in [
             ('Description', 'TEXT'),
             ('Email_Text', 'TEXT'),
